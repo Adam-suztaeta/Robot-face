@@ -18,9 +18,10 @@ html,body{
     width:100vw;
     height:100vh;
     position:relative;
-    transition:0.3s;
+    transition:0.4s;
 }
 
+/* OJOS */
 .eye{
     width:22vw;
     height:22vw;
@@ -29,6 +30,7 @@ html,body{
     position:absolute;
     top:35vh;
     overflow:hidden;
+    transition:0.3s;
 }
 
 #leftEye{ left:20vw; }
@@ -41,63 +43,83 @@ html,body{
     position:absolute;
     top:8vw;
     left:8vw;
-    transition:0.15s;
+    transition:0.2s;
 }
 
+/* BOCA */
 #mouth{
     width:28vw;
     height:3vw;
     border:0.6vw solid #00ff66;
     border-top:none;
     position:absolute;
-    top:60vh; /* mucho más cerca */
+    top:58vh;
     left:50%;
     transform:translateX(-50%);
     transition:0.3s;
 }
 
-.closed{
-    height:2vw !important;
-}
-
-.angry{
-    border-color:red !important;
-    background:#200000 !important;
-}
-
-.angryPupil{
-    background:red !important;
-}
-
+/* CEJAS ENOJADAS */
 .brow{
     position:absolute;
     width:24vw;
-    height:1vw;
+    height:2vw;
     background:red;
-    top:32vh;
+    top:30vh;
+    display:none;
 }
 
 #browLeft{
     left:19vw;
-    transform:rotate(-15deg);
-    display:none;
+    transform:rotate(-25deg);
 }
 
 #browRight{
     right:19vw;
-    transform:rotate(15deg);
-    display:none;
+    transform:rotate(25deg);
 }
 
-canvas{
+/* MODO ENOJO */
+.angryEye{
+    background:#200000 !important;
+    border-color:red !important;
+}
+.angryPupil{
+    background:red !important;
+}
+
+/* TERROR */
+.terror{
+    background:black !important;
+    border-color:white !important;
+    transform:scale(1.2);
+}
+.terrorPupil{
+    background:white !important;
+    transform:scale(1.8);
+}
+
+/* GRIETAS */
+#crack{
     position:absolute;
-    top:35vh;
-    left:20vw;
-    width:60vw;
-    height:22vw;
-    display:none;
-    background:black;
-    border:0.5vw solid #00ff66;
+    width:100%;
+    height:100%;
+    background:
+    linear-gradient(45deg, transparent 48%, white 49%, transparent 50%),
+    linear-gradient(-45deg, transparent 48%, white 49%, transparent 50%);
+    opacity:0;
+    pointer-events:none;
+}
+
+/* PANTALLA BLANCA FINAL */
+#whiteout{
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:white;
+    opacity:0;
+    pointer-events:none;
+    transition:2s;
 }
 </style>
 </head>
@@ -109,21 +131,23 @@ canvas{
     <div id="mouth"></div>
     <div id="browLeft" class="brow"></div>
     <div id="browRight" class="brow"></div>
-    <canvas id="pong"></canvas>
+    <div id="crack"></div>
+    <div id="whiteout"></div>
 </div>
 
 <script>
-const leftEye = document.getElementById("leftEye");
-const rightEye = document.getElementById("rightEye");
-const leftPupil = document.getElementById("leftPupil");
-const rightPupil = document.getElementById("rightPupil");
-const mouth = document.getElementById("mouth");
-const canvas = document.getElementById("pong");
-const ctx = canvas.getContext("2d");
-const browLeft = document.getElementById("browLeft");
-const browRight = document.getElementById("browRight");
+const leftEye=document.getElementById("leftEye");
+const rightEye=document.getElementById("rightEye");
+const leftPupil=document.getElementById("leftPupil");
+const rightPupil=document.getElementById("rightPupil");
+const mouth=document.getElementById("mouth");
+const browLeft=document.getElementById("browLeft");
+const browRight=document.getElementById("browRight");
+const crack=document.getElementById("crack");
+const whiteout=document.getElementById("whiteout");
 
 let angryMode=false;
+let rageLevel=0;
 let sequence=[];
 let playing=false;
 
@@ -133,145 +157,85 @@ document.addEventListener("touchstart",()=>{
         document.documentElement.requestFullscreen();
 },{once:true});
 
-/* CIERRE AUTOMÁTICO */
+/* OJOS SE CIERRAN 1 SEG Y ABREN */
 function blink(eye){
-    eye.classList.add("closed");
-    setTimeout(()=>eye.classList.remove("closed"),1000);
+    eye.style.height="2vw";
+    setTimeout(()=>eye.style.height="22vw",1000);
 }
 
+/* INTERACCIÓN NORMAL */
 leftEye.addEventListener("touchstart",()=>{
-    if(angryMode||playing)return;
-    blink(leftEye);
-    sequence.push("L");
-    checkSequence();
+    if(playing)return;
+    if(!angryMode){
+        blink(leftEye);
+        sequence.push("L");
+        checkSequence();
+    }else{
+        escalateRage();
+    }
 });
 
 rightEye.addEventListener("touchstart",()=>{
-    if(angryMode||playing)return;
-    blink(rightEye);
-    sequence.push("R");
-    checkSequence();
+    if(playing)return;
+    if(!angryMode){
+        blink(rightEye);
+    }else{
+        escalateRage();
+    }
 });
 
+/* SECUENCIA SECRETA */
 function checkSequence(){
     if(sequence.slice(-3).join("")==="LLL"){
-        startPong();
+        activateAngry();
         sequence=[];
     }
 }
 
-/* ---------- PONG ---------- */
-let playerY=50, aiY=50, ballX=50, ballY=50, ballVX=2, ballVY=2;
-let playerScore=0, aiScore=0;
-
-function startPong(){
-    playing=true;
-    canvas.style.display="block";
-    canvas.width=600;
-    canvas.height=200;
-    playerScore=0;
-    aiScore=0;
-    requestAnimationFrame(loop);
-}
-
-document.addEventListener("touchmove",e=>{
-    if(!playing)return;
-    let rect=canvas.getBoundingClientRect();
-    playerY=(e.touches[0].clientY-rect.top)/rect.height*canvas.height;
-});
-
-function loop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    /* AI simple */
-    aiY += (ballY-aiY)*0.05;
-
-    ballX+=ballVX;
-    ballY+=ballVY;
-
-    if(ballY<0||ballY>canvas.height)ballVY*=-1;
-
-    if(ballX<20 && ballY>playerY-30 && ballY<playerY+30)ballVX*=-1;
-    if(ballX>canvas.width-20 && ballY>aiY-30 && ballY<aiY+30)ballVX*=-1;
-
-    if(ballX<0){ aiScore++; resetBall(); }
-    if(ballX>canvas.width){ playerScore++; resetBall(); }
-
-    /* DIBUJO */
-    ctx.fillStyle="#00ff66";
-    ctx.fillRect(5,playerY-30,10,60);
-    ctx.fillRect(canvas.width-15,aiY-30,10,60);
-    ctx.fillRect(ballX-5,ballY-5,10,10);
-
-    if(playerScore===3||aiScore===3){
-        endGame();
-        return;
-    }
-
-    requestAnimationFrame(loop);
-}
-
-function resetBall(){
-    ballX=canvas.width/2;
-    ballY=canvas.height/2;
-}
-
-function endGame(){
-    canvas.style.display="none";
-    playing=false;
-
-    if(playerScore===3){
-        activateAngry();
-    }else{
-        mouth.style.height="6vw";
-        setTimeout(()=>mouth.style.height="3vw",1500);
-    }
-}
-
-/* ---------- MODO ENOJO ---------- */
+/* ACTIVAR ENOJO */
 function activateAngry(){
     angryMode=true;
-
-    leftEye.classList.add("angry");
-    rightEye.classList.add("angry");
+    leftEye.classList.add("angryEye");
+    rightEye.classList.add("angryEye");
     leftPupil.classList.add("angryPupil");
     rightPupil.classList.add("angryPupil");
     mouth.style.borderColor="red";
     browLeft.style.display="block";
     browRight.style.display="block";
-
-    leftPupil.style.transform="translate(0,0)";
-    rightPupil.style.transform="translate(0,0)";
 }
 
-/* ---------- GIROSCOPIO ---------- */
-if(window.DeviceOrientationEvent){
-    window.addEventListener("deviceorientation",e=>{
-        if(angryMode||playing)return;
-        document.getElementById("robot").style.transform=
-        `rotate(${e.gamma/4}deg)`;
-    });
-}
+/* ESCALAR IRA */
+function escalateRage(){
+    rageLevel++;
 
-/* ---------- SONIDO ---------- */
-navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    const ctxA=new AudioContext();
-    const mic=ctxA.createMediaStreamSource(stream);
-    const analyser=ctxA.createAnalyser();
-    mic.connect(analyser);
-    const data=new Uint8Array(analyser.frequencyBinCount);
-
-    function detect(){
-        analyser.getByteFrequencyData(data);
-        let volume=data.reduce((a,b)=>a+b)/data.length;
-        if(volume>70 && !angryMode && !playing){
-            mouth.style.height="8vw";
-            setTimeout(()=>mouth.style.height="3vw",300);
-        }
-        requestAnimationFrame(detect);
+    if(rageLevel===1){
+        mouth.style.height="1vw";
     }
-    detect();
-});
+    else if(rageLevel===2){
+        document.getElementById("robot").style.transform="scale(1.1)";
+    }
+    else if(rageLevel>=3){
+        terrorMode();
+    }
+}
+
+/* MODO TERROR */
+function terrorMode(){
+    leftEye.classList.add("terror");
+    rightEye.classList.add("terror");
+    leftPupil.classList.add("terrorPupil");
+    rightPupil.classList.add("terrorPupil");
+    mouth.style.display="none";
+    browLeft.style.display="none";
+    browRight.style.display="none";
+
+    crack.style.opacity=1;
+
+    setTimeout(()=>{
+        whiteout.style.opacity=1;
+    },2000);
+}
 </script>
+
 </body>
 </html>
