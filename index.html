@@ -9,44 +9,39 @@
 body{
     margin:0;
     background:black;
-    color:#00ff88;
+    color:#00aaff;
     font-family:monospace;
     display:flex;
     flex-direction:column;
     align-items:center;
+    transition:0.3s;
 }
 
 #robot{
     margin-top:40px;
     width:200px;
     height:200px;
-    background:#111;
+    background:#001a2e;
     border-radius:20px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    box-shadow:0 0 25px #00ff8855;
+    box-shadow:0 0 25px #00aaff55;
+    transition:0.3s;
 }
 
 .eyes{
     display:flex;
     gap:30px;
-}
-
-.eye{
-    width:30px;
-    height:30px;
-    background:#00ff88;
-    border-radius:50%;
+    font-size:28px;
+    color:#00aaff;
 }
 
 .mouth{
     margin-top:25px;
-    width:80px;
-    height:20px;
-    background:#00ff88;
-    border-radius:10px;
+    font-size:26px;
+    color:#00aaff;
 }
 
 #chat{
@@ -69,28 +64,49 @@ input{
     padding:10px;
     margin-top:10px;
     background:black;
-    border:1px solid #00ff88;
-    color:#00ff88;
+    border:1px solid #00aaff;
+    color:#00aaff;
     font-family:monospace;
 }
 
 button{
     margin-top:10px;
     padding:8px;
-    background:#00ff88;
+    background:#00aaff;
     border:none;
     cursor:pointer;
 }
+
+/* ESTADOS */
+
+.red{
+    background:#2e0000 !important;
+    box-shadow:0 0 25px red !important;
+    color:red !important;
+}
+
+.greenMode{
+    background:#001a00 !important;
+    color:#00ff00 !important;
+}
+
+.greenMode #robot{
+    background:#002b00 !important;
+    box-shadow:0 0 25px #00ff00 !important;
+}
+
+.greenMode input{
+    border:1px solid #00ff00 !important;
+    color:#00ff00 !important;
+}
+
 </style>
 </head>
 <body>
 
 <div id="robot">
-    <div class="eyes">
-        <div class="eye"></div>
-        <div class="eye"></div>
-    </div>
-    <div class="mouth"></div>
+    <div class="eyes" id="eyes">◉ ◉</div>
+    <div class="mouth" id="mouth">‿</div>
 </div>
 
 <div id="chat">
@@ -101,9 +117,13 @@ button{
 <script>
 
 let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
-let saturnUnlocked = false;
 let saturnPasswordStage = false;
+let susMode = false;
 
+const body = document.body;
+const robot = document.getElementById("robot");
+const eyes = document.getElementById("eyes");
+const mouth = document.getElementById("mouth");
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 
@@ -118,14 +138,58 @@ function addMessage(text, sender){
     messages.scrollTop = messages.scrollHeight;
 }
 
-/* MENSAJE DE BIENVENIDA */
+/* BIENVENIDA */
 
 addMessage("Hola, bienvenidos. Soy chill-bill Antivirus.", "chill-bill");
 addMessage("Sistema activo.", "chill-bill");
 addMessage("Comandos disponibles:", "chill-bill");
 addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
 
+function redAlert(){
+    robot.classList.add("red");
+    eyes.textContent = "◉ ◉";
+    mouth.textContent = "_";
+    setTimeout(()=>{
+        robot.classList.remove("red");
+        eyes.textContent = "◉ ◉";
+        mouth.textContent = "‿";
+    },1000);
+}
+
+function sadHint(){
+    mouth.textContent = "︵";
+    setTimeout(()=>{
+        mouth.textContent = "‿";
+    },1000);
+}
+
+function activateSusto(){
+    susMode = true;
+    body.classList.add("greenMode");
+    eyes.textContent = "X X";
+    mouth.textContent = "w";
+}
+
 function respond(text){
+
+    let lower = text.toLowerCase();
+
+    /* DETECTAR SATURN */
+    if(lower.includes("saturn")){
+        redAlert();
+        return "Acceso denegado.";
+    }
+
+    /* DETECTAR LILI O ADAM */
+    if(lower.includes("lili") || lower.includes("adam")){
+        sadHint();
+    }
+
+    /* DETECTAR SUSTO */
+    if(lower.includes("susto")){
+        activateSusto();
+        return "Modo alterado.";
+    }
 
     if(usedCommands[text]) return null;
 
@@ -156,15 +220,14 @@ function respond(text){
             return "Archivo detectado.\nIngrese contraseña.";
 
         default:
-            if(saturnPasswordStage && text === "AdamandLily"){
-                saturnUnlocked = true;
+
+            if(saturnPasswordStage && text === "AdamxLili"){
                 saturnPasswordStage = false;
 
                 let btn = document.createElement("button");
                 btn.textContent = "Acceder al Archivo Saturn";
                 btn.onclick = function(){
-                    window.location.href = "archivo_saturn.html"; 
-                    /* CAMBIÁ ESTA RUTA DESPUÉS */
+                    window.location.href = "archivo_saturn.html";
                 };
                 document.getElementById("chat").appendChild(btn);
 
