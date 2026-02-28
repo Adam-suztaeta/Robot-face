@@ -9,13 +9,13 @@ body{
     margin:0;
     background:black;
     color:#00ff00;
-    font-family: "Courier New", monospace;
+    font-family:"Courier New", monospace;
     display:flex;
     flex-direction:column;
     align-items:center;
 }
 
-/* TERMINAL ESTILO CMD */
+/* TERMINAL */
 
 #chat{
     width:80%;
@@ -121,38 +121,62 @@ body{
 
 <script>
 
-let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
 let saturnPasswordStage = false;
+let typing = false;
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 const robot = document.getElementById("robot");
 const eyes = document.querySelectorAll(".eye");
 
-function addMessage(text){
-    messages.innerHTML += text + "\n";
-    messages.scrollTop = messages.scrollHeight;
+/* EFECTO ESCRITURA */
+
+function typeText(text, speed = 20){
+    return new Promise(resolve=>{
+        typing = true;
+        let i = 0;
+        let line = document.createElement("div");
+        messages.appendChild(line);
+
+        function write(){
+            if(i < text.length){
+                line.textContent += text.charAt(i);
+                i++;
+                setTimeout(write, speed);
+            }else{
+                messages.appendChild(document.createElement("br"));
+                typing = false;
+                resolve();
+            }
+        }
+        write();
+        messages.scrollTop = messages.scrollHeight;
+    });
 }
 
-/* PRESENTACIÓN LARGA */
+/* PRESENTACIÓN INICIAL */
 
-addMessage("chill-bill Antivirus v1.9.7");
-addMessage("Inicializando sistema...");
-addMessage("Cargando protocolos de seguridad...");
-addMessage("Acceso monitoreado.");
-addMessage("");
-addMessage("Soy un antivirus especial.");
-addMessage("Creado por ███████.");
-addMessage("Propiedad de I VACIA Studios.");
-addMessage("");
-addMessage("Comandos disponibles:");
-addMessage("Hola");
-addMessage("Personal");
-addMessage("Entertainment");
-addMessage("Creadores");
-addMessage("");
+async function bootSequence(){
+    await typeText("chill-bill Antivirus v2.1.0");
+    await typeText("Inicializando sistema...");
+    await typeText("Cargando modulos de proteccion...");
+    await typeText("Escaneo de amenazas: COMPLETADO");
+    await typeText("");
+    await typeText("Soy un antivirus especial.");
+    await typeText("Creado por ███████.");
+    await typeText("Propiedad de I VACIA Studios.");
+    await typeText("");
+    await typeText("Comandos disponibles:");
+    await typeText("Hola");
+    await typeText("Personal");
+    await typeText("Entertainment");
+    await typeText("Creadores");
+    await typeText("");
+}
 
-/* MODO SUSTO */
+bootSequence();
+
+/* SUSTO */
 
 function activateSusto(){
     robot.classList.add("susto");
@@ -169,30 +193,32 @@ function activateSusto(){
     },2000);
 }
 
-function respond(text){
+async function respond(text){
 
-    let lower = text.toLowerCase();
+    let cleaned = text.trim();
+    let lower = cleaned.toLowerCase();
 
-    /* SUSTO */
     if(lower === "susto"){
         activateSusto();
         return;
     }
 
-    /* BLOQUEO SI SOLO PONEN SATURN */
-    if(lower.includes("saturn") && text !== "Project Saturn Archive_14.7_update"){
-        return "Acceso denegado.";
-    }
-
-    /* ACTIVADOR REAL */
-    if(text === "Project.Saturn.Archive_14.7_update"){
+    if(lower === "project.saturn.archive_14.7_update"){
         saturnPasswordStage = true;
-        return "Archivo detectado.\nIngrese contraseña.";
+        await typeText("Archivo detectado.");
+        await typeText("Ingrese contraseña.");
+        return;
     }
 
-    /* CONTRASEÑA */
+    if(lower.includes("saturn") && lower !== "project.saturn.archive_14.7_update"){
+        await typeText("Acceso denegado.");
+        return;
+    }
+
     if(saturnPasswordStage && lower === "adamandlily"){
         saturnPasswordStage = false;
+        await typeText("Contraseña correcta.");
+        await typeText("Archivo desbloqueado.");
 
         let btn = document.createElement("button");
         btn.textContent = "Acceder al Archivo Saturn";
@@ -204,43 +230,54 @@ function respond(text){
             window.location.href="archivo_saturn.html";
         };
         document.getElementById("chat").appendChild(btn);
-
-        return "Contraseña correcta.\nArchivo desbloqueado.";
+        return;
     }
 
     switch(lower){
 
         case "hola":
-            return "Saludo detectado. Hola! Bienvenido usuario. ";
+            await typeText("Saludo detectado. Hola! Bienvenido usuario.");
+            break;
 
         case "personal":
-            return "Archivo_Personal:\nVACIA Entertainment\nNumero de trabajadores activos: ██████";
+            await typeText("Archivo_Personal:");
+            await typeText("VACIA Entertainment");
+            await typeText("Numero de trabajadores activos: ██████");
+            break;
 
         case "entertainment":
-            return "VacIA Entertainment.\nEstado: Activo.";
+            await typeText("VacIA Entertainment.");
+            await typeText("Estado: Activo.");
+            break;
 
         case "creadores":
-            return "Creadores registrados:\nA.5U5TO\nL.bill";
+            await typeText("Creadores registrados:");
+            await typeText("A.5U5TO");
+            await typeText("L.bill");
+            break;
 
         default:
-            return "Comando no reconocido.";
+            await typeText("Comando no reconocido.");
     }
 }
 
-input.addEventListener("keypress", function(e){
-    if(e.key==="Enter"){
+input.addEventListener("keypress", async function(e){
+    if(e.key==="Enter" && !typing){
         let text=input.value.trim();
         if(!text) return;
 
-        addMessage("C:\\> " + text);
-        let reply=respond(text);
-        if(reply) addMessage(reply);
+        let userLine = document.createElement("div");
+        userLine.textContent = "C:\\> " + text;
+        messages.appendChild(userLine);
 
         input.value="";
+        await respond(text);
+
+        messages.scrollTop = messages.scrollHeight;
     }
 });
 
 </script>
 
 </body>
-</html>
+</html> 
