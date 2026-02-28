@@ -16,6 +16,8 @@ body{
     align-items:center;
 }
 
+/* ROBOT */
+
 #robot{
     margin-top:40px;
     width:200px;
@@ -26,65 +28,63 @@ body{
     justify-content:center;
     align-items:center;
     box-shadow:0 0 25px #00ff8855;
-    position:relative;
+    transition:0.3s;
 }
 
 #face{
     width:150px;
     height:150px;
-    background:#1a1a1a;
     display:flex;
-    flex-wrap:wrap;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
-    gap:20px;
-    position:relative;
+    gap:15px;
 }
 
-/* OJOS CUBO */
+/* OJOS CUADRADOS */
+
+.eyes{
+    display:flex;
+    gap:30px;
+}
+
 .eye{
-    width:40px;
-    height:40px;
+    width:35px;
+    height:35px;
     background:#00ff88;
-    position:relative;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    transition:0.2s;
 }
 
-.pupil{
-    width:15px;
-    height:15px;
-    background:black;
-}
+/* BOCA MÁS CERCA */
 
-/* BOCA CUBO */
 .mouth{
     width:60px;
-    height:15px;
+    height:12px;
     background:#00ff88;
-    margin-top:20px;
+    margin-top:-5px;
+    transition:0.2s;
 }
 
 /* PARPADEO */
+
 .blink{
-    animation:blinkAnim 0.2s;
+    animation:blinkAnim 0.15s;
 }
 
 @keyframes blinkAnim{
-    0%{height:40px;}
+    0%{height:35px;}
     50%{height:5px;}
-    100%{height:40px;}
+    100%{height:35px;}
 }
 
 /* MODO SUSTO */
-.green{
+
+.susto{
     background:#002b00 !important;
     box-shadow:0 0 25px #00ff00 !important;
 }
 
 .cross{
-    background:#00ff00 !important;
     display:flex;
     justify-content:center;
     align-items:center;
@@ -92,50 +92,15 @@ body{
     font-size:22px;
     color:black;
 }
-
-#chat{
-    width:90%;
-    max-width:600px;
-    margin-top:30px;
-}
-
-#messages{
-    height:260px;
-    overflow-y:auto;
-    background:#111;
-    padding:10px;
-    border-radius:10px;
-    font-size:14px;
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    background:black;
-    border:1px solid #00ff88;
-    color:#00ff88;
-    font-family:monospace;
-}
-
-button{
-    margin-top:10px;
-    padding:8px;
-    background:#00ff88;
-    border:none;
-    cursor:pointer;
-}
 </style>
 </head>
 <body>
 
 <div id="robot">
     <div id="face">
-        <div class="eye left">
-            <div class="pupil"></div>
-        </div>
-        <div class="eye right">
-            <div class="pupil"></div>
+        <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
         </div>
         <div class="mouth"></div>
     </div>
@@ -154,6 +119,8 @@ let saturnPasswordStage = false;
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
+const robot = document.getElementById("robot");
+const eyes = document.querySelectorAll(".eye");
 
 function saveUsed(){
     localStorage.setItem("chillbillUsed", JSON.stringify(usedCommands));
@@ -166,45 +133,35 @@ function addMessage(text, sender){
     messages.scrollTop = messages.scrollHeight;
 }
 
-    /* === PARPADEO AUTOMÁTICO === */
-
-const eyes = document.querySelectorAll(".eye");
-const robot = document.getElementById("robot");
+/* PARPADEO AUTOMÁTICO */
 
 function blink(){
     eyes.forEach(e => e.classList.add("blink"));
     setTimeout(()=>{
         eyes.forEach(e => e.classList.remove("blink"));
-    },200);
+    },150);
 }
 
 setInterval(blink, 4000);
 
-/* === DETECTOR SUSTO === */
+/* MODO SUSTO TEMPORAL */
 
-function checkSusto(text){
-    if(text === "Susto" || text === "susto" || text === "SUSTO"){
-        activateSustoMode();
-    }
-}
-
-function activateSustoMode(){
-    robot.classList.add("green");
+function activateSusto(){
+    robot.classList.add("susto");
 
     eyes.forEach(e=>{
-        e.innerHTML = "X";
+        e.textContent = "X";
         e.classList.add("cross");
     });
+
+    setTimeout(()=>{
+        robot.classList.remove("susto");
+        eyes.forEach(e=>{
+            e.textContent = "";
+            e.classList.remove("cross");
+        });
+    },2000);
 }
-
-/* Interceptamos el input sin romper tu sistema */
-
-const originalRespond = respond;
-
-respond = function(text){
-    checkSusto(text);
-    return originalRespond(text);
-};
 
 /* MENSAJE DE BIENVENIDA */
 
@@ -214,6 +171,11 @@ addMessage("Comandos disponibles:", "chill-bill");
 addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
 
 function respond(text){
+
+    /* DETECCIÓN SUSTO */
+    if(text === "Susto" || text === "susto" || text === "SUSTO"){
+        activateSusto();
+    }
 
     if(usedCommands[text]) return null;
 
@@ -252,7 +214,6 @@ function respond(text){
                 btn.textContent = "Acceder al Archivo Saturn";
                 btn.onclick = function(){
                     window.location.href = "archivo_saturn.html"; 
-                    /* CAMBIÁ ESTA RUTA DESPUÉS */
                 };
                 document.getElementById("chat").appendChild(btn);
 
