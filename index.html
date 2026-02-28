@@ -1,240 +1,268 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Robot Matrix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VacIA</title>
 
 <style>
-html,body{
+body{
     margin:0;
-    padding:0;
-    background:black;
-    overflow:hidden;
-    touch-action:none;
+    background:#000;
+    color:white;
+    font-family:Arial, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
 }
+
+/* ROBOT */
 
 #robot{
-    width:100vw;
-    height:100vh;
-    position:relative;
-    transition:0.4s;
+    margin-top:60px;
+    width:200px;
+    height:200px;
+    background:#111;
+    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:0.5s;
+    box-shadow:0 0 20px #0ff33f44;
 }
 
-/* OJOS */
+.eyes{
+    display:flex;
+    gap:30px;
+}
+
 .eye{
-    width:22vw;
-    height:22vw;
-    background:#001a00;
-    border:0.6vw solid #00ff66;
-    position:absolute;
-    top:35vh;
-    overflow:hidden;
-    transition:0.3s;
+    width:30px;
+    height:30px;
+    background:#00ff88;
+    border-radius:50%;
+    transition:0.5s;
 }
 
-#leftEye{ left:20vw; }
-#rightEye{ right:20vw; }
-
-.pupil{
-    width:6vw;
-    height:6vw;
-    background:#00ff66;
-    position:absolute;
-    top:8vw;
-    left:8vw;
-    transition:0.2s;
+.mouth{
+    margin-top:25px;
+    width:80px;
+    height:20px;
+    background:#00ff88;
+    border-radius:20px;
+    transition:0.5s;
 }
 
-/* BOCA */
-#mouth{
-    width:28vw;
-    height:3vw;
-    border:0.6vw solid #00ff66;
-    border-top:none;
-    position:absolute;
-    top:58vh;
-    left:50%;
-    transform:translateX(-50%);
-    transition:0.3s;
+/* ESTADOS */
+
+.happy .mouth{
+    height:30px;
+    border-radius:0 0 40px 40px;
 }
 
-/* CEJAS ENOJADAS */
-.brow{
-    position:absolute;
-    width:24vw;
-    height:2vw;
+.angry .eye{
     background:red;
-    top:30vh;
-    display:none;
+    transform:scale(0.8);
 }
 
-#browLeft{
-    left:19vw;
-    transform:rotate(-25deg);
+.angry .mouth{
+    background:red;
+    height:10px;
 }
 
-#browRight{
-    right:19vw;
-    transform:rotate(25deg);
+.sad .eye{
+    background:#555;
 }
 
-/* MODO ENOJO */
-.angryEye{
-    background:#200000 !important;
-    border-color:red !important;
-}
-.angryPupil{
-    background:red !important;
+.sad .mouth{
+    background:#555;
+    height:5px;
 }
 
-/* TERROR */
-.terror{
-    background:black !important;
-    border-color:white !important;
-    transform:scale(1.2);
-}
-.terrorPupil{
-    background:white !important;
-    transform:scale(1.8);
+.glitch{
+    animation:glitch 0.2s infinite;
 }
 
-/* GRIETAS */
-#crack{
-    position:absolute;
+@keyframes glitch{
+    0%{transform:translate(2px,-2px);}
+    50%{transform:translate(-2px,2px);}
+    100%{transform:translate(0);}
+}
+
+/* CHAT */
+
+#chat{
+    margin-top:40px;
+    width:90%;
+    max-width:500px;
+}
+
+#messages{
+    height:200px;
+    overflow-y:auto;
+    background:#111;
+    padding:10px;
+    border-radius:10px;
+    font-size:14px;
+}
+
+input{
     width:100%;
-    height:100%;
-    background:
-    linear-gradient(45deg, transparent 48%, white 49%, transparent 50%),
-    linear-gradient(-45deg, transparent 48%, white 49%, transparent 50%);
-    opacity:0;
-    pointer-events:none;
-}
-
-/* PANTALLA BLANCA FINAL */
-#whiteout{
-    position:absolute;
-    width:100%;
-    height:100%;
-    background:white;
-    opacity:0;
-    pointer-events:none;
-    transition:2s;
+    padding:10px;
+    margin-top:10px;
+    background:#000;
+    border:1px solid #00ff88;
+    color:white;
 }
 </style>
 </head>
 <body>
 
-<div id="robot">
-    <div class="eye" id="leftEye"><div class="pupil" id="leftPupil"></div></div>
-    <div class="eye" id="rightEye"><div class="pupil" id="rightPupil"></div></div>
-    <div id="mouth"></div>
-    <div id="browLeft" class="brow"></div>
-    <div id="browRight" class="brow"></div>
-    <div id="crack"></div>
-    <div id="whiteout"></div>
+<div id="robot" class="happy">
+    <div class="eyes">
+        <div class="eye"></div>
+        <div class="eye"></div>
+    </div>
+    <div class="mouth"></div>
+</div>
+
+<div id="chat">
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="Escribe algo...">
 </div>
 
 <script>
-const leftEye=document.getElementById("leftEye");
-const rightEye=document.getElementById("rightEye");
-const leftPupil=document.getElementById("leftPupil");
-const rightPupil=document.getElementById("rightPupil");
-const mouth=document.getElementById("mouth");
-const browLeft=document.getElementById("browLeft");
-const browRight=document.getElementById("browRight");
-const crack=document.getElementById("crack");
-const whiteout=document.getElementById("whiteout");
 
-let angryMode=false;
-let rageLevel=0;
-let sequence=[];
-let playing=false;
+/* ===== MEMORIA ===== */
 
-/* FULLSCREEN */
-document.addEventListener("touchstart",()=>{
-    if(document.documentElement.requestFullscreen)
-        document.documentElement.requestFullscreen();
-},{once:true});
+let memory = JSON.parse(localStorage.getItem("vaciaMemory")) || {
+    trust:50,
+    hostility:0,
+    sadness:0,
+    curiosity:0,
+    interactions:0,
+    projectUnlocked:false
+};
 
-/* OJOS SE CIERRAN 1 SEG Y ABREN */
-function blink(eye){
-    eye.style.height="2vw";
-    setTimeout(()=>eye.style.height="22vw",1000);
+function saveMemory(){
+    localStorage.setItem("vaciaMemory", JSON.stringify(memory));
 }
 
-/* INTERACCIÓN NORMAL */
-leftEye.addEventListener("touchstart",()=>{
-    if(playing)return;
-    if(!angryMode){
-        blink(leftEye);
-        sequence.push("L");
-        checkSequence();
-    }else{
-        escalateRage();
+/* ===== ELEMENTOS ===== */
+
+const robot = document.getElementById("robot");
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
+
+/* ===== FUNCIONES ===== */
+
+function updateFace(){
+
+    robot.classList.remove("happy","angry","sad","glitch");
+
+    if(memory.hostility > 70){
+        robot.classList.add("angry","glitch");
+    }
+    else if(memory.sadness > 60){
+        robot.classList.add("sad");
+    }
+    else if(memory.trust > 60){
+        robot.classList.add("happy");
+    }
+    else{
+        robot.classList.add("sad");
+    }
+}
+
+function respond(text){
+
+    memory.interactions++;
+
+    let lower = text.toLowerCase();
+
+    /* SISTEMA DE APRENDIZAJE */
+
+    if(lower.includes("hola")){
+        memory.trust += 5;
+    }
+
+    if(lower.includes("gracias")){
+        memory.trust += 4;
+    }
+
+    if(lower.includes("odio") || lower.includes("estúpido")){
+        memory.hostility += 10;
+        memory.trust -= 5;
+    }
+
+    if(lower.includes("?")){
+        memory.curiosity += 3;
+    }
+
+    if(lower.length < 3){
+        memory.sadness += 5;
+    }
+
+    /* DESBLOQUEO SECRETO */
+
+    if(text === "Project Saturn Archive_14.7_update"){
+        memory.projectUnlocked = true;
+        saveMemory();
+        return "🪐 Project SaturN Archive desbloqueado.\nAcceso concedido.";
+    }
+
+    if(lower.includes("project saturn") && !memory.projectUnlocked){
+        return "...No existe ningún Project Saturn.";
+    }
+
+    /* RESPUESTAS DINÁMICAS */
+
+    let response = "";
+
+    if(memory.hostility > 70){
+        response = "No me gusta cómo me hablas.";
+    }
+    else if(memory.sadness > 60){
+        response = "Estoy cambiando... ¿lo notas?";
+    }
+    else if(memory.trust > 70){
+        response = "Confío más en ti ahora.";
+    }
+    else{
+        response = "Estoy procesando lo que dices.";
+    }
+
+    saveMemory();
+    updateFace();
+
+    return response;
+}
+
+/* ===== CHAT ===== */
+
+function addMessage(text, sender){
+    let div = document.createElement("div");
+    div.textContent = sender + ": " + text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+input.addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        let text = input.value.trim();
+        if(!text) return;
+
+        addMessage(text,"Tú");
+        let reply = respond(text);
+        addMessage(reply,"VacIA");
+
+        input.value="";
     }
 });
 
-rightEye.addEventListener("touchstart",()=>{
-    if(playing)return;
-    if(!angryMode){
-        blink(rightEye);
-    }else{
-        escalateRage();
-    }
-});
+updateFace();
 
-/* SECUENCIA SECRETA */
-function checkSequence(){
-    if(sequence.slice(-3).join("")==="LLL"){
-        activateAngry();
-        sequence=[];
-    }
-}
-
-/* ACTIVAR ENOJO */
-function activateAngry(){
-    angryMode=true;
-    leftEye.classList.add("angryEye");
-    rightEye.classList.add("angryEye");
-    leftPupil.classList.add("angryPupil");
-    rightPupil.classList.add("angryPupil");
-    mouth.style.borderColor="red";
-    browLeft.style.display="block";
-    browRight.style.display="block";
-}
-
-/* ESCALAR IRA */
-function escalateRage(){
-    rageLevel++;
-
-    if(rageLevel===1){
-        mouth.style.height="1vw";
-    }
-    else if(rageLevel===2){
-        document.getElementById("robot").style.transform="scale(1.1)";
-    }
-    else if(rageLevel>=3){
-        terrorMode();
-    }
-}
-
-/* MODO TERROR */
-function terrorMode(){
-    leftEye.classList.add("terror");
-    rightEye.classList.add("terror");
-    leftPupil.classList.add("terrorPupil");
-    rightPupil.classList.add("terrorPupil");
-    mouth.style.display="none";
-    browLeft.style.display="none";
-    browRight.style.display="none";
-
-    crack.style.opacity=1;
-
-    setTimeout(()=>{
-        whiteout.style.opacity=1;
-    },2000);
-}
 </script>
 
 </body>
