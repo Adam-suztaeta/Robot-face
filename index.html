@@ -13,9 +13,8 @@ body{
     display:flex;
     flex-direction:column;
     align-items:center;
+    transition:0.3s;
 }
-
-/* TERMINAL */
 
 #chat{
     width:80%;
@@ -25,6 +24,7 @@ body{
     padding:20px;
     margin-top:40px;
     box-shadow:0 0 20px #00ff0055;
+    transition:0.3s;
 }
 
 #messages{
@@ -76,29 +76,41 @@ body{
     width:35px;
     height:35px;
     background:#00ff00;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+    color:black;
 }
 
 .mouth{
     width:60px;
     height:12px;
     background:#00ff00;
-    margin-top:-10px;
+    transition:0.3s;
 }
 
 /* SUSTO */
-
 .susto{
     background:#002b00 !important;
-    box-shadow:0 0 30px #00ff00 !important;
 }
 
-.cross{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:bold;
-    font-size:22px;
-    color:black;
+.sad{
+    height:8px;
+    border-radius:50% 50% 0 0;
+}
+
+/* COLORES EVENTO */
+.celeste{
+    background:#00bfff !important;
+    color:white !important;
+    border-color:white !important;
+}
+
+.violeta{
+    background:#2a003f !important;
+    color:#bb00ff !important;
+    border-color:#bb00ff !important;
 }
 </style>
 </head>
@@ -128,8 +140,10 @@ const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 const robot = document.getElementById("robot");
 const eyes = document.querySelectorAll(".eye");
+const mouth = document.querySelector(".mouth");
+const chat = document.getElementById("chat");
 
-/* EFECTO ESCRITURA */
+/* TYPE EFFECT */
 
 function typeText(text, speed = 20){
     return new Promise(resolve=>{
@@ -154,108 +168,112 @@ function typeText(text, speed = 20){
     });
 }
 
-/* PRESENTACIÓN INICIAL */
+/* BOOT */
 
-async function bootSequence(){
-    await typeText("chill-bill Antivirus v2.1.0");
+async function boot(){
+    await typeText("chill-bill Antivirus v3.0.0");
     await typeText("Inicializando sistema...");
-    await typeText("Cargando modulos de proteccion...");
-    await typeText("Escaneo de amenazas: COMPLETADO");
+    await typeText("Cargando modulos...");
+    await typeText("Escaneo completo.");
     await typeText("");
     await typeText("Soy un antivirus especial.");
     await typeText("Creado por ███████.");
     await typeText("Propiedad de I VACIA Studios.");
     await typeText("");
-    await typeText("Comandos disponibles:");
-    await typeText("Hola");
-    await typeText("Personal");
-    await typeText("Entertainment");
-    await typeText("Creadores");
-    await typeText("");
 }
+boot();
 
-bootSequence();
-
-/* SUSTO */
+/* EVENTOS */
 
 function activateSusto(){
-    robot.classList.add("susto");
-    eyes.forEach(e=>{
-        e.textContent="X";
-        e.classList.add("cross");
-    });
+    eyes.forEach(e=> e.textContent="X");
     setTimeout(()=>{
-        robot.classList.remove("susto");
-        eyes.forEach(e=>{
-            e.textContent="";
-            e.classList.remove("cross");
-        });
-    },2000);
+        eyes.forEach(e=> e.textContent="");
+    },1000);
 }
+
+function sadFace(){
+    mouth.classList.add("sad");
+    setTimeout(()=> mouth.classList.remove("sad"),1000);
+}
+
+function celesteFlash(){
+    chat.classList.add("celeste");
+    sadFace();
+    setTimeout(()=> chat.classList.remove("celeste"),1000);
+}
+
+function violetGlitch(){
+    chat.classList.add("violeta");
+    messages.innerHTML += "\n▒▒▒ 333 ▒▒▒ ERROR 333 ▒▒▒\n";
+    setTimeout(()=> location.reload(),1500);
+}
+
+/* RESPUESTA */
 
 async function respond(text){
 
-    let cleaned = text.trim();
-    let lower = cleaned.toLowerCase();
+    let lower = text.trim().toLowerCase();
 
-    if(lower === "susto"){
+    if(lower==="susto"){
         activateSusto();
         return;
     }
 
-    if(lower === "project.saturn.archive_14.7_update"){
+    if(lower==="adam"){
+        sadFace();
+        return;
+    }
+
+    if(lower==="lily"){
+        celesteFlash();
+        return;
+    }
+
+    if(lower.includes("violet") || lower.includes("baiolet")){
+        violetGlitch();
+        return;
+    }
+
+    if(lower==="chau" || lower==="adiós" || lower==="adios"){
+        history.back();
+        return;
+    }
+
+    if(lower==="project.saturn.archive_14.7_update"){
         saturnPasswordStage = true;
         await typeText("Archivo detectado.");
         await typeText("Ingrese contraseña.");
         return;
     }
 
-    if(lower.includes("saturn") && lower !== "project.saturn.archive_14.7_update"){
+    if(lower.includes("saturn") && lower!=="project.saturn.archive_14.7_update"){
         await typeText("Acceso denegado.");
         return;
     }
 
-    if(saturnPasswordStage && lower === "adamandlily"){
-        saturnPasswordStage = false;
+    if(saturnPasswordStage && lower==="adamandlily"){
+        saturnPasswordStage=false;
         await typeText("Contraseña correcta.");
         await typeText("Archivo desbloqueado.");
-
-        let btn = document.createElement("button");
-        btn.textContent = "Acceder al Archivo Saturn";
-        btn.style.background="black";
-        btn.style.color="#00ff00";
-        btn.style.border="1px solid #00ff00";
-        btn.style.marginTop="10px";
-        btn.onclick=function(){
-            window.location.href="archivo_saturn.html";
-        };
-        document.getElementById("chat").appendChild(btn);
         return;
     }
 
     switch(lower){
-
         case "hola":
-            await typeText("Saludo detectado. Hola! Bienvenido usuario.");
+            await typeText("Saludo detectado.");
             break;
-
         case "personal":
             await typeText("Archivo_Personal:");
             await typeText("VACIA Entertainment");
-            await typeText("Numero de trabajadores activos: ██████");
             break;
-
         case "entertainment":
-            await typeText("VacIA Entertainment.");
-            await typeText("Estado: Activo.");
+            await typeText("VacIA Entertainment Activo.");
             break;
-
         case "creadores":
-            await typeText("Creadores registrados:");
             await typeText("A.5U5TO");
             await typeText("L.bill");
             break;
-
         default:
             await typeText("Comando no reconocido.");
     }
@@ -266,18 +284,12 @@ input.addEventListener("keypress", async function(e){
         let text=input.value.trim();
         if(!text) return;
 
-        let userLine = document.createElement("div");
-        userLine.textContent = "C:\\> " + text;
-        messages.appendChild(userLine);
-
+        messages.innerHTML += "C:\\> " + text + "\n";
         input.value="";
         await respond(text);
-
-        messages.scrollTop = messages.scrollHeight;
     }
 });
 
 </script>
-
 </body>
-</html> 
+</html>
