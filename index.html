@@ -2,76 +2,52 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>VacIA Terminal</title>
+<title>chill-bill Antivirus</title>
 
 <style>
 body{
+    margin:0;
     background:black;
     color:#00ff00;
-    font-family:monospace;
-    margin:0;
-    text-align:center;
-}
-
-/* ROBOT */
-#robot{
-    margin-top:40px;
-}
-
-.face{
-    width:120px;
-    margin:auto;
-}
-
-.eyes{
+    font-family:"Courier New", monospace;
     display:flex;
-    justify-content:space-between;
-    width:80px;
-    margin:auto;
+    flex-direction:column;
+    align-items:center;
+    transition:0.3s;
 }
 
-.eye{
-    width:25px;
-    height:25px;
-    background:#00ff00;
-}
-
-.mouth{
-    width:60px;
-    height:10px;
-    background:#00ff00;
-    margin:10px auto 0 auto;
-}
-
-/* TERMINAL */
-#terminal{
+#chat{
     width:80%;
-    max-width:700px;
-    margin:40px auto;
-    text-align:left;
-    border:1px solid #00ff00;
+    max-width:800px;
+    background:black;
+    border:2px solid #00ff00;
     padding:20px;
-    min-height:200px;
+    margin-top:40px;
+    box-shadow:0 0 20px #00ff0055;
+    transition:0.3s;
 }
 
-#inputLine{
-    display:flex;
+#messages{
+    min-height:300px;
+    white-space:pre-wrap;
 }
 
-#commandInput{
+#input{
+    width:100%;
     background:black;
     border:none;
     color:#00ff00;
-    font-family:monospace;
+    font-family:"Courier New", monospace;
     font-size:16px;
-    width:100%;
     outline:none;
 }
 
 /* BOTÓN SATURN */
+
 #saturnAccess{
     display:none;
     margin-top:20px;
+    text-align:center;
 }
 
 #saturnBtn{
@@ -79,192 +55,259 @@ body{
     color:#00ff00;
     border:1px solid #00ff00;
     padding:10px 20px;
-    font-family:monospace;
+    font-family:"Courier New", monospace;
     cursor:pointer;
 }
 
 #saturnBtn:hover{
     background:#001100;
 }
+
+/* ROBOT */
+
+#robot{
+    margin-top:40px;
+    width:200px;
+    height:200px;
+    background:#111;
+    border-radius:5px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:0 0 20px #00ff0055;
+}
+
+#face{
+    width:150px;
+    height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+}
+
+.eyes{
+    display:flex;
+    gap:30px;
+}
+
+.eye{
+    width:35px;
+    height:35px;
+    background:#00ff00;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+    color:black;
+}
+
+.mouth{
+    width:60px;
+    height:12px;
+    background:#00ff00;
+    transition:0.3s;
+}
+
+.sad{
+    height:8px;
+    border-radius:50% 50% 0 0;
+}
+
+.celeste{
+    background:#00bfff !important;
+    color:white !important;
+    border-color:white !important;
+}
+
+.violeta{
+    background:#2a003f !important;
+    color:#bb00ff !important;
+    border-color:#bb00ff !important;
+}
 </style>
 </head>
 <body>
 
 <div id="robot">
-    <div class="face">
+    <div id="face">
         <div class="eyes">
-            <div class="eye" id="eyeL"></div>
-            <div class="eye" id="eyeR"></div>
+            <div class="eye"></div>
+            <div class="eye"></div>
         </div>
-        <div class="mouth" id="mouth"></div>
+        <div class="mouth"></div>
     </div>
 </div>
 
-<div id="terminal"></div>
-
-<div id="inputLine">
-    <span>></span>
-    <input type="text" id="commandInput" autofocus>
+<div id="chat">
+    <div id="messages"></div>
+    <input type="text" id="input" placeholder="C:\>">
 </div>
 
+<!-- BOTÓN SATURN (OCULTO) -->
 <div id="saturnAccess">
     <button id="saturnBtn">ABRIR ARCHIVO SATURN</button>
 </div>
 
 <script>
-const terminal = document.getElementById("terminal");
-const input = document.getElementById("commandInput");
-const eyeL = document.getElementById("eyeL");
-const eyeR = document.getElementById("eyeR");
-const mouth = document.getElementById("mouth");
 
-let typingSpeed = 25;
+let saturnPasswordStage = false;
+let typing = false;
 
-/* TYPEWRITER */
-function typeWriter(text, callback){
-    let i=0;
-    function write(){
-        if(i<text.length){
-            terminal.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(write, typingSpeed);
-        } else {
-            terminal.innerHTML += "<br>";
-            if(callback) callback();
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
+const eyes = document.querySelectorAll(".eye");
+const mouth = document.querySelector(".mouth");
+const chat = document.getElementById("chat");
+const saturnAccess = document.getElementById("saturnAccess");
+
+/* TYPE EFFECT */
+
+function typeText(text, speed = 20){
+    return new Promise(resolve=>{
+        typing = true;
+        let i = 0;
+        let line = document.createElement("div");
+        messages.appendChild(line);
+
+        function write(){
+            if(i < text.length){
+                line.textContent += text.charAt(i);
+                i++;
+                setTimeout(write, speed);
+            }else{
+                messages.appendChild(document.createElement("br"));
+                typing = false;
+                resolve();
+            }
         }
-    }
-    write();
+        write();
+        messages.scrollTop = messages.scrollHeight;
+    });
 }
 
-/* PARPADEO */
-setInterval(()=>{
-    eyeL.style.opacity="0";
-    eyeR.style.opacity="0";
-    setTimeout(()=>{
-        eyeL.style.opacity="1";
-        eyeR.style.opacity="1";
-    },200);
-},4000);
+/* BOOT RESTAURADO */
 
-/* REACCIONES */
+async function boot(){
+    await typeText("chill-bill Antivirus v1.9.7");
+    await typeText("Inicializando sistema...");
+    await typeText("Cargando protocolos de seguridad...");
+    await typeText("Acceso monitoreado.");
+    await typeText("");
+    await typeText("Soy un antivirus especial.");
+    await typeText("Creado por ███████.");
+    await typeText("Propiedad de I VACIA Studios.");
+    await typeText("");
+    await typeText("Comandos disponibles:");
+    await typeText("Hola");
+    await typeText("Personal");
+    await typeText("Entertainment");
+    await typeText("Creadores");
+    await typeText("");
+}
+boot();
 
-function reactSusto(){
-    eyeL.innerHTML="✖";
-    eyeR.innerHTML="✖";
-    eyeL.style.display="flex";
-    eyeR.style.display="flex";
-    eyeL.style.alignItems="center";
-    eyeR.style.alignItems="center";
-    eyeL.style.justifyContent="center";
-    eyeR.style.justifyContent="center";
-    document.body.style.background="#001100";
-    setTimeout(()=>{
-        eyeL.innerHTML="";
-        eyeR.innerHTML="";
-        document.body.style.background="black";
-    },1000);
+/* EVENTOS */
+
+function activateSusto(){
+    eyes.forEach(e=> e.textContent="X");
+    setTimeout(()=> eyes.forEach(e=> e.textContent=""),1000);
 }
 
-function reactAdam(){
-    mouth.style.height="4px";
-    setTimeout(()=>{
-        mouth.style.height="10px";
-    },1000);
+function sadFace(){
+    mouth.classList.add("sad");
+    setTimeout(()=> mouth.classList.remove("sad"),1000);
 }
 
-function reactLily(){
-    document.body.style.background="#00bfff";
-    mouth.style.height="4px";
-    setTimeout(()=>{
-        document.body.style.background="black";
-        mouth.style.height="10px";
-    },1000);
+function celesteFlash(){
+    chat.classList.add("celeste");
+    sadFace();
+    setTimeout(()=> chat.classList.remove("celeste"),1000);
 }
 
-function reactViolet(){
-    document.body.style.background="purple";
-    typeWriter("###333###333###333###");
-    setTimeout(()=>{
-        location.reload();
-    },1500);
+function violetGlitch(){
+    chat.classList.add("violeta");
+    messages.innerHTML += "\n▒▒▒ ERROR 333 ▒▒▒ 333 ▒▒▒ ERROR ▒▒▒\n";
+    setTimeout(()=> location.reload(),1500);
 }
 
-/* PRESENTACIÓN */
-typeWriter("Soy un antivirus especial creado por █████ I VACIA ESTUDIOS");
-typeWriter("Sistema listo.");
-typeWriter("Comandos disponibles:");
-typeWriter("- help");
-typeWriter("- clear");
-typeWriter("- Project Saturn Archive_14.7_update");
+/* RESPUESTAS */
 
-/* INPUT */
-input.addEventListener("keydown", function(e){
-if(e.key==="Enter"){
+async function respond(text){
 
-    let cmd = input.value.trim();
-    let lower = cmd.toLowerCase();
+    let lower = text.trim().toLowerCase();
 
-    terminal.innerHTML += "> "+cmd+"<br>";
-    input.value="";
+    if(lower==="susto"){ activateSusto(); return; }
+    if(lower==="adam"){ sadFace(); return; }
+    if(lower==="lily"){ celesteFlash(); return; }
+    if(lower.includes("violet") || lower.includes("baiolet")){ violetGlitch(); return; }
+    if(lower==="chau" || lower==="adios" || lower==="adiós"){ history.back(); return; }
 
-    /* PALABRAS CLAVE */
-
-    if(lower.includes("susto")){
-        reactSusto();
-    }
-
-    if(lower.includes("adam")){
-        reactAdam();
-    }
-
-    if(lower.includes("lily")){
-        reactLily();
-    }
-
-    if(lower.includes("violet") || lower.includes("baiolet")){
-        reactViolet();
+    if(lower==="project.saturn.archive_14.7_update"){
+        saturnPasswordStage=true;
+        await typeText("Archivo detectado.");
+        await typeText("Ingrese contraseña.");
         return;
     }
 
-    if(lower==="chau" || lower==="adiós"){
-        history.back();
+    if(lower.includes("saturn") && lower!=="project.saturn.archive_14.7_update"){
+        await typeText("Acceso denegado.");
         return;
     }
 
-    /* SATURN BLOQUEO */
-    if(lower.includes("saturn") && lower !== "project saturn archive_14.7_update"){
-        typeWriter("Acceso denegado.");
+    if(saturnPasswordStage && lower==="adamandlily"){
+        saturnPasswordStage=false;
+        await typeText("Contraseña correcta.");
+        await typeText("Archivo desbloqueado.");
+        saturnAccess.style.display="block";  // 👈 SOLO ESTO SE AGREGÓ
         return;
     }
 
-    /* CONTRASEÑA EXACTA */
-    if(lower==="project saturn archive_14.7_update"){
-        typeWriter("Acceso concedido...");
-        typeWriter("Desbloqueando archivo clasificado...");
-        document.getElementById("saturnAccess").style.display="block";
-        return;
-    }
+    switch(lower){
 
-    if(lower==="help"){
-        typeWriter("Comandos:");
-        typeWriter("help / clear / Project Saturn Archive_14.7_update");
-        return;
-    }
+        case "hola":
+            await typeText("Saludo detectado. Hola! Bienvenido usuario.");
+            break;
 
-    if(lower==="clear"){
-        terminal.innerHTML="";
-        return;
-    }
+        case "personal":
+            await typeText("Archivo_Personal:");
+            await typeText("VACIA Entertainment");
+            await typeText("Numero de trabajadores activos: ██████");
+            break;
 
-    typeWriter("Comando no reconocido.");
+        case "entertainment":
+            await typeText("VacIA Entertainment.");
+            await typeText("Estado: Activo.");
+            break;
+
+        case "creadores":
+            await typeText("Los creadores de VacIA Studios son:");
+            await typeText("A.5U5TO");
+            await typeText("L.bill");
+            break;
+
+        default:
+            await typeText("Comando no reconocido.");
+    }
 }
+
+input.addEventListener("keypress", async function(e){
+    if(e.key==="Enter" && !typing){
+        let text=input.value.trim();
+        if(!text) return;
+        messages.innerHTML += "C:\\> " + text + "\n";
+        input.value="";
+        await respond(text);
+    }
 });
 
-/* BOTÓN SATURN */
+/* EVENTO BOTÓN */
+
 document.getElementById("saturnBtn").addEventListener("click", function(){
-    window.location.href="saturn.html";
+    window.location.href = "saturn.html";
 });
-</script>
 
+</script>
 </body>
 </html>
