@@ -21,32 +21,76 @@ body{
     width:200px;
     height:200px;
     background:#111;
-    border-radius:20px;
+    border-radius:10px;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
     box-shadow:0 0 25px #00ff8855;
+    position:relative;
 }
 
-.eyes{
+#face{
+    width:150px;
+    height:150px;
+    background:#1a1a1a;
     display:flex;
-    gap:30px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+    position:relative;
 }
 
+/* OJOS CUBO */
 .eye{
-    width:30px;
-    height:30px;
+    width:40px;
+    height:40px;
     background:#00ff88;
-    border-radius:50%;
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
+.pupil{
+    width:15px;
+    height:15px;
+    background:black;
+}
+
+/* BOCA CUBO */
 .mouth{
-    margin-top:25px;
-    width:80px;
-    height:20px;
+    width:60px;
+    height:15px;
     background:#00ff88;
-    border-radius:10px;
+    margin-top:20px;
+}
+
+/* PARPADEO */
+.blink{
+    animation:blinkAnim 0.2s;
+}
+
+@keyframes blinkAnim{
+    0%{height:40px;}
+    50%{height:5px;}
+    100%{height:40px;}
+}
+
+/* MODO SUSTO */
+.green{
+    background:#002b00 !important;
+    box-shadow:0 0 25px #00ff00 !important;
+}
+
+.cross{
+    background:#00ff00 !important;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+    font-size:22px;
+    color:black;
 }
 
 #chat{
@@ -86,11 +130,15 @@ button{
 <body>
 
 <div id="robot">
-    <div class="eyes">
-        <div class="eye"></div>
-        <div class="eye"></div>
+    <div id="face">
+        <div class="eye left">
+            <div class="pupil"></div>
+        </div>
+        <div class="eye right">
+            <div class="pupil"></div>
+        </div>
+        <div class="mouth"></div>
     </div>
-    <div class="mouth"></div>
 </div>
 
 <div id="chat">
@@ -117,6 +165,46 @@ function addMessage(text, sender){
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 }
+
+    /* === PARPADEO AUTOMÁTICO === */
+
+const eyes = document.querySelectorAll(".eye");
+const robot = document.getElementById("robot");
+
+function blink(){
+    eyes.forEach(e => e.classList.add("blink"));
+    setTimeout(()=>{
+        eyes.forEach(e => e.classList.remove("blink"));
+    },200);
+}
+
+setInterval(blink, 4000);
+
+/* === DETECTOR SUSTO === */
+
+function checkSusto(text){
+    if(text === "Susto" || text === "susto" || text === "SUSTO"){
+        activateSustoMode();
+    }
+}
+
+function activateSustoMode(){
+    robot.classList.add("green");
+
+    eyes.forEach(e=>{
+        e.innerHTML = "X";
+        e.classList.add("cross");
+    });
+}
+
+/* Interceptamos el input sin romper tu sistema */
+
+const originalRespond = respond;
+
+respond = function(text){
+    checkSusto(text);
+    return originalRespond(text);
+};
 
 /* MENSAJE DE BIENVENIDA */
 
