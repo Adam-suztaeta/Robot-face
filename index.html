@@ -54,7 +54,6 @@ body{
     justify-content:center;
     align-items:center;
     box-shadow:0 0 20px #00ff0055;
-    transition:0.3s;
 }
 
 #face{
@@ -90,17 +89,11 @@ body{
     transition:0.3s;
 }
 
-/* SUSTO */
-.susto{
-    background:#002b00 !important;
-}
-
 .sad{
     height:8px;
     border-radius:50% 50% 0 0;
 }
 
-/* COLORES EVENTO */
 .celeste{
     background:#00bfff !important;
     color:white !important;
@@ -138,7 +131,6 @@ let typing = false;
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
-const robot = document.getElementById("robot");
 const eyes = document.querySelectorAll(".eye");
 const mouth = document.querySelector(".mouth");
 const chat = document.getElementById("chat");
@@ -168,17 +160,23 @@ function typeText(text, speed = 20){
     });
 }
 
-/* BOOT */
+/* BOOT RESTAURADO */
 
 async function boot(){
-    await typeText("chill-bill Antivirus v3.0.0");
+    await typeText("chill-bill Antivirus v1.9.7");
     await typeText("Inicializando sistema...");
-    await typeText("Cargando modulos...");
-    await typeText("Escaneo completo.");
+    await typeText("Cargando protocolos de seguridad...");
+    await typeText("Acceso monitoreado.");
     await typeText("");
     await typeText("Soy un antivirus especial.");
     await typeText("Creado por ███████.");
-    await typeText("Propiedad de I VACIA Studios.");
+    await typeText("Propiedad de VacIA entertainment.");
+    await typeText("");
+    await typeText("Comandos disponibles:");
+    await typeText("Hola");
+    await typeText("Personal");
+    await typeText("Entertainment");
+    await typeText("Creadores");
     await typeText("");
 }
 boot();
@@ -187,9 +185,7 @@ boot();
 
 function activateSusto(){
     eyes.forEach(e=> e.textContent="X");
-    setTimeout(()=>{
-        eyes.forEach(e=> e.textContent="");
-    },1000);
+    setTimeout(()=> eyes.forEach(e=> e.textContent=""),1000);
 }
 
 function sadFace(){
@@ -205,43 +201,24 @@ function celesteFlash(){
 
 function violetGlitch(){
     chat.classList.add("violeta");
-    messages.innerHTML += "\n▒▒▒ 333 ▒▒▒ ERROR 333 ▒▒▒\n";
+    messages.innerHTML += "\n▒▒▒ ERROR 333 ▒▒▒ 333 ▒▒▒ ERROR ▒▒▒\n";
     setTimeout(()=> location.reload(),1500);
 }
 
-/* RESPUESTA */
+/* RESPUESTAS */
 
 async function respond(text){
 
     let lower = text.trim().toLowerCase();
 
-    if(lower==="susto"){
-        activateSusto();
-        return;
-    }
-
-    if(lower==="adam"){
-        sadFace();
-        return;
-    }
-
-    if(lower==="lily"){
-        celesteFlash();
-        return;
-    }
-
-    if(lower.includes("violet") || lower.includes("baiolet")){
-        violetGlitch();
-        return;
-    }
-
-    if(lower==="chau" || lower==="adiós" || lower==="adios"){
-        history.back();
-        return;
-    }
+    if(lower==="susto"){ activateSusto(); return; }
+    if(lower==="adam"){ sadFace(); return; }
+    if(lower==="lily"){ celesteFlash(); return; }
+    if(lower.includes("violet") || lower.includes("baiolet")){ violetGlitch(); return; }
+    if(lower==="chau" || lower==="adios" || lower==="adiós"){ history.back(); return; }
 
     if(lower==="project.saturn.archive_14.7_update"){
-        saturnPasswordStage = true;
+        saturnPasswordStage=true;
         await typeText("Archivo detectado.");
         await typeText("Ingrese contraseña.");
         return;
@@ -260,20 +237,28 @@ async function respond(text){
     }
 
     switch(lower){
+
         case "hola":
-            await typeText("Saludo detectado.");
+            await typeText("Saludo detectado. Hola! Bienvenido usuario.");
             break;
+
         case "personal":
             await typeText("Archivo_Personal:");
             await typeText("VACIA Entertainment");
+            await typeText("Numero de trabajadores activos: ██████");
             break;
+
         case "entertainment":
-            await typeText("VacIA Entertainment Activo.");
+            await typeText("VacIA Entertainment.");
+            await typeText("Estado: Activo.");
             break;
+
         case "creadores":
+            await typeText("Los creadores de VacIA Studios son:");
             await typeText("A.5U5TO");
             await typeText("L.bill");
             break;
+
         default:
             await typeText("Comando no reconocido.");
     }
@@ -283,7 +268,6 @@ input.addEventListener("keypress", async function(e){
     if(e.key==="Enter" && !typing){
         let text=input.value.trim();
         if(!text) return;
-
         messages.innerHTML += "C:\\> " + text + "\n";
         input.value="";
         await respond(text);
