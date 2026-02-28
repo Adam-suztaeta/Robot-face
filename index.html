@@ -2,18 +2,44 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>chill-bill Antivirus</title>
 
 <style>
 body{
     margin:0;
     background:black;
-    color:#00ff88;
-    font-family:monospace;
+    color:#00ff00;
+    font-family: "Courier New", monospace;
     display:flex;
     flex-direction:column;
     align-items:center;
+}
+
+/* TERMINAL ESTILO CMD */
+
+#chat{
+    width:80%;
+    max-width:800px;
+    background:black;
+    border:2px solid #00ff00;
+    padding:20px;
+    margin-top:40px;
+    box-shadow:0 0 20px #00ff0055;
+}
+
+#messages{
+    min-height:300px;
+    white-space:pre-wrap;
+}
+
+#input{
+    width:100%;
+    background:black;
+    border:none;
+    color:#00ff00;
+    font-family:"Courier New", monospace;
+    font-size:16px;
+    outline:none;
 }
 
 /* ROBOT */
@@ -23,11 +49,11 @@ body{
     width:200px;
     height:200px;
     background:#111;
-    border-radius:10px;
+    border-radius:5px;
     display:flex;
     justify-content:center;
     align-items:center;
-    box-shadow:0 0 25px #00ff8855;
+    box-shadow:0 0 20px #00ff0055;
     transition:0.3s;
 }
 
@@ -38,10 +64,8 @@ body{
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    gap:15px;
+    gap:10px;
 }
-
-/* OJOS CUADRADOS */
 
 .eyes{
     display:flex;
@@ -51,37 +75,21 @@ body{
 .eye{
     width:35px;
     height:35px;
-    background:#00ff88;
-    transition:0.2s;
+    background:#00ff00;
 }
-
-/* BOCA MÁS CERCA */
 
 .mouth{
     width:60px;
     height:12px;
-    background:#00ff88;
-    margin-top:-5px;
-    transition:0.2s;
+    background:#00ff00;
+    margin-top:-10px;
 }
 
-/* PARPADEO */
-
-.blink{
-    animation:blinkAnim 0.15s;
-}
-
-@keyframes blinkAnim{
-    0%{height:35px;}
-    50%{height:5px;}
-    100%{height:35px;}
-}
-
-/* MODO SUSTO */
+/* SUSTO */
 
 .susto{
     background:#002b00 !important;
-    box-shadow:0 0 25px #00ff00 !important;
+    box-shadow:0 0 30px #00ff00 !important;
 }
 
 .cross{
@@ -108,13 +116,12 @@ body{
 
 <div id="chat">
     <div id="messages"></div>
-    <input type="text" id="input" placeholder="Ingrese comando exacto...">
+    <input type="text" id="input" placeholder="C:\>">
 </div>
 
 <script>
 
 let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
-let saturnUnlocked = false;
 let saturnPasswordStage = false;
 
 const messages = document.getElementById("messages");
@@ -122,119 +129,112 @@ const input = document.getElementById("input");
 const robot = document.getElementById("robot");
 const eyes = document.querySelectorAll(".eye");
 
-function saveUsed(){
-    localStorage.setItem("chillbillUsed", JSON.stringify(usedCommands));
-}
-
-function addMessage(text, sender){
-    let div = document.createElement("div");
-    div.textContent = sender + ": " + text;
-    messages.appendChild(div);
+function addMessage(text){
+    messages.innerHTML += text + "\n";
     messages.scrollTop = messages.scrollHeight;
 }
 
-/* PARPADEO AUTOMÁTICO */
+/* PRESENTACIÓN LARGA */
 
-function blink(){
-    eyes.forEach(e => e.classList.add("blink"));
-    setTimeout(()=>{
-        eyes.forEach(e => e.classList.remove("blink"));
-    },150);
-}
+addMessage("chill-bill Antivirus v1.9.7");
+addMessage("Inicializando sistema...");
+addMessage("Cargando protocolos de seguridad...");
+addMessage("Acceso monitoreado.");
+addMessage("");
+addMessage("Soy un antivirus especial.");
+addMessage("Creado por ███████.");
+addMessage("Propiedad de I VACIA Studios.");
+addMessage("");
+addMessage("Comandos disponibles:");
+addMessage("Hola");
+addMessage("Personal");
+addMessage("Entertainment");
+addMessage("Creadores");
+addMessage("");
 
-setInterval(blink, 4000);
-
-/* MODO SUSTO TEMPORAL */
+/* MODO SUSTO */
 
 function activateSusto(){
     robot.classList.add("susto");
-
     eyes.forEach(e=>{
-        e.textContent = "X";
+        e.textContent="X";
         e.classList.add("cross");
     });
-
     setTimeout(()=>{
         robot.classList.remove("susto");
         eyes.forEach(e=>{
-            e.textContent = "";
+            e.textContent="";
             e.classList.remove("cross");
         });
     },2000);
 }
 
-/* MENSAJE DE BIENVENIDA */
-
-addMessage("Hola, bienvenidos. Soy chill-bill Antivirus.", "chill-bill");
-addMessage("Sistema activo.", "chill-bill");
-addMessage("Comandos disponibles:", "chill-bill");
-addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
-
 function respond(text){
 
-    /* DETECCIÓN SUSTO */
-    if(text === "Susto" || text === "susto" || text === "SUSTO"){
+    let lower = text.toLowerCase();
+
+    /* SUSTO */
+    if(lower === "susto"){
         activateSusto();
+        return;
     }
 
-    if(usedCommands[text]) return null;
+    /* BLOQUEO SI SOLO PONEN SATURN */
+    if(lower.includes("saturn") && text !== "Project Saturn Archive_14.7_update"){
+        return "Acceso denegado.";
+    }
 
-    switch(text){
+    /* ACTIVADOR REAL */
+    if(text === "Project Saturn Archive_14.7_update"){
+        saturnPasswordStage = true;
+        return "Archivo detectado.\nIngrese contraseña.";
+    }
 
-        case "Hola":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Saludo detectado. Protección activa.";
+    /* CONTRASEÑA */
+    if(saturnPasswordStage && lower === "adamandlily"){
+        saturnPasswordStage = false;
 
-        case "Personal":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Archivo Personal:\nVacía Entertainment\nTrabajadores: ██████\nContacto: ██████";
+        let btn = document.createElement("button");
+        btn.textContent = "Acceder al Archivo Saturn";
+        btn.style.background="black";
+        btn.style.color="#00ff00";
+        btn.style.border="1px solid #00ff00";
+        btn.style.marginTop="10px";
+        btn.onclick=function(){
+            window.location.href="archivo_saturn.html";
+        };
+        document.getElementById("chat").appendChild(btn);
 
-        case "Entertainment":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Vacía Entertainment existe.\nEstado legal: Activo.\nNúmero: ██████";
+        return "Contraseña correcta.\nArchivo desbloqueado.";
+    }
+
+    switch(lower){
+
+        case "hola":
+            return "Saludo detectado. Proteccion activa.";
+
+        case "personal":
+            return "Archivo Personal:\nVACIA Entertainment\nTrabajadores: ██████";
+
+        case "entertainment":
+            return "VACIA Entertainment existe.\nEstado legal: Activo.";
 
         case "creadores":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Los creadores de Vacía Studios son:\nA.5U5TO\nL.bill";
-
-        case "Project Saturn Archive_14.7_update":
-            saturnPasswordStage = true;
-            return "Archivo detectado.\nIngrese contraseña.";
+            return "Creadores registrados:\nA.5U5TO\nL.bill";
 
         default:
-            if(saturnPasswordStage && text === "AdamandLily"){
-                saturnUnlocked = true;
-                saturnPasswordStage = false;
-
-                let btn = document.createElement("button");
-                btn.textContent = "Acceder al Archivo Saturn";
-                btn.onclick = function(){
-                    window.location.href = "archivo_saturn.html"; 
-                };
-                document.getElementById("chat").appendChild(btn);
-
-                return "Contraseña correcta.\nArchivo desbloqueado.";
-            }
-
-            return null;
+            return "Comando no reconocido.";
     }
 }
 
 input.addEventListener("keypress", function(e){
-    if(e.key === "Enter"){
-        let text = input.value.trim();
+    if(e.key==="Enter"){
+        let text=input.value.trim();
         if(!text) return;
 
-        addMessage(text,"Usuario");
-        let reply = respond(text);
-
-        if(reply){
-            addMessage(reply,"chill-bill");
-        }
+        addMessage("C:\\> " + text);
+        let reply=respond(text);
+        if(reply) addMessage(reply);
 
         input.value="";
     }
