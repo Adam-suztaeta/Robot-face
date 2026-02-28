@@ -9,42 +9,50 @@
 body{
     margin:0;
     background:black;
-    color:#00aaff;
+    color:#00ff88;
     font-family:monospace;
     display:flex;
     flex-direction:column;
     align-items:center;
 }
 
-#container{
-    width:95%;
-    max-width:900px;
-}
-
 #robot{
-    margin:20px auto;
-    width:180px;
-    height:180px;
-    background:#001a2e;
+    margin-top:40px;
+    width:200px;
+    height:200px;
+    background:#111;
     border-radius:20px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    box-shadow:0 0 25px #00aaff55;
-    transition:0.3s;
+    box-shadow:0 0 25px #00ff8855;
 }
 
 .eyes{
-    font-size:30px;
+    display:flex;
+    gap:30px;
+}
+
+.eye{
+    width:30px;
+    height:30px;
+    background:#00ff88;
+    border-radius:50%;
 }
 
 .mouth{
-    font-size:26px;
+    margin-top:25px;
+    width:80px;
+    height:20px;
+    background:#00ff88;
+    border-radius:10px;
 }
 
 #chat{
-    width:100%;
+    width:90%;
+    max-width:600px;
+    margin-top:30px;
 }
 
 #messages{
@@ -58,66 +66,50 @@ body{
 
 input{
     width:100%;
-    padding:12px;
+    padding:10px;
     margin-top:10px;
     background:black;
-    border:1px solid #00aaff;
-    color:#00aaff;
+    border:1px solid #00ff88;
+    color:#00ff88;
     font-family:monospace;
 }
 
 button{
     margin-top:10px;
     padding:8px;
-    background:#00aaff;
+    background:#00ff88;
     border:none;
     cursor:pointer;
-}
-
-.greenMode{
-    background:#001a00 !important;
-    color:#00ff00 !important;
-}
-
-.greenMode #robot{
-    background:#002b00 !important;
-    box-shadow:0 0 25px #00ff00 !important;
-}
-
-@media (orientation: landscape) and (max-height:500px){
-    #messages{
-        height:150px;
-    }
 }
 </style>
 </head>
 <body>
 
-<div id="container">
-
 <div id="robot">
-    <div class="eyes" id="eyes">◉ ◉</div>
-    <div class="mouth" id="mouth">‿</div>
+    <div class="eyes">
+        <div class="eye"></div>
+        <div class="eye"></div>
+    </div>
+    <div class="mouth"></div>
 </div>
 
 <div id="chat">
     <div id="messages"></div>
-    <input type="text" id="input" placeholder="Use /comando">
-</div>
-
+    <input type="text" id="input" placeholder="Ingrese comando exacto...">
 </div>
 
 <script>
 
+let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
+let saturnUnlocked = false;
 let saturnPasswordStage = false;
-let attempts = 3;
-let locked = false;
 
-const body = document.body;
-const eyes = document.getElementById("eyes");
-const mouth = document.getElementById("mouth");
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
+
+function saveUsed(){
+    localStorage.setItem("chillbillUsed", JSON.stringify(usedCommands));
+}
 
 function addMessage(text, sender){
     let div = document.createElement("div");
@@ -126,97 +118,60 @@ function addMessage(text, sender){
     messages.scrollTop = messages.scrollHeight;
 }
 
-/* BIENVENIDA */
+/* MENSAJE DE BIENVENIDA */
 
 addMessage("Hola, bienvenidos. Soy chill-bill Antivirus.", "chill-bill");
 addMessage("Sistema activo.", "chill-bill");
-addMessage("Comandos: /hola /personal /entertainment /creadores /creadores_adam /creadores_lily /derechos /saturn", "chill-bill");
-
-function activateSusto(){
-    body.classList.add("greenMode");
-    eyes.textContent = "X X";
-    mouth.textContent = "w";
-}
+addMessage("Comandos disponibles:", "chill-bill");
+addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
 
 function respond(text){
 
-    if(locked) return null;
+    if(usedCommands[text]) return null;
 
-    if(!text.startsWith("/")) return null;
+    switch(text){
 
-    let cmd = text.trim();
+        case "Hola":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Saludo detectado. Protección activa.";
 
-    /* SUSTO */
-    if(cmd === "/asusto"){
-        activateSusto();
-        return null;
-    }
+        case "Personal":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Archivo Personal:\nVacía Entertainment\nTrabajadores: ██████\nContacto: ██████";
 
-    /* SATURN VARIACIONES */
-    if(cmd.toLowerCase() === "/project saturn"){
-        return "Incorrect name.";
-    }
+        case "Entertainment":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Vacía Entertainment existe.\nEstado legal: Activo.\nNúmero: ██████";
 
-    if(cmd.toLowerCase().startsWith("/saturn")){
-        return "Ruta encontrada:\n/saturn/archive\n/saturn/logs\n/saturn/system";
-    }
+        case "creadores":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Los creadores de Vacía Studios son:\nA.5U5TO\nL.bill";
 
-    /* DESBLOQUEO REAL */
-    if(cmd === "/Project Saturn Archive_14.7_update"){
-        saturnPasswordStage = true;
-        attempts = 3;
-        return "Enter password.";
-    }
-
-    if(saturnPasswordStage){
-        if(cmd.substring(1) === "AdamXLily"){
-            saturnPasswordStage = false;
-
-            let btn = document.createElement("button");
-            btn.textContent = "Acceder Archivo Saturn";
-            btn.onclick = function(){
-                window.location.href = "archivo_saturn.html";
-            };
-            document.getElementById("chat").appendChild(btn);
-
-            return "Access granted.";
-        }else{
-            attempts--;
-            if(attempts <= 0){
-                locked = true;
-                return "System locked.";
-            }
-            return "Wrong password. Attempts left: " + attempts;
-        }
-    }
-
-    /* COMANDOS NORMALES */
-
-    switch(cmd){
-
-        case "/hola":
-            return "Saludo detectado.";
-
-        case "/personal":
-            return "Archivo Personal:\nVasi Entertainment\nTrabajadores: ██████";
-
-        case "/entertainment":
-            return "Vasi Entertainment\nEstado: Activo";
-
-        case "/derechos":
-            return "© Todos los derechos reservados.\nVasi Entertainment.";
-
-        case "/creadores":
-            return "Use /creadores_adam o /creadores_lily";
-
-        case "/creadores_adam":
-            return "Adam █████ es un hombre normal.\nCo-creador de Vasi Studio y █████ Project Saturn.\nProgramador principal junto a █████ (Lily).";
-
-        case "/creadores_lily":
-            return "Lili █████.\nCo-creadora de Vasi Entertainment.\nParticipante en █████ Project Saturn.\nCara principal y creadora del sistema Chill_bil.";
+        case "Project Saturn Archive_14.7_update":
+            saturnPasswordStage = true;
+            return "Archivo detectado.\nIngrese contraseña.";
 
         default:
-            return "error";
+            if(saturnPasswordStage && text === "AdamandLily"){
+                saturnUnlocked = true;
+                saturnPasswordStage = false;
+
+                let btn = document.createElement("button");
+                btn.textContent = "Acceder al Archivo Saturn";
+                btn.onclick = function(){
+                    window.location.href = "archivo_saturn.html"; 
+                    /* CAMBIÁ ESTA RUTA DESPUÉS */
+                };
+                document.getElementById("chat").appendChild(btn);
+
+                return "Contraseña correcta.\nArchivo desbloqueado.";
+            }
+
+            return null;
     }
 }
 
