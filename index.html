@@ -14,13 +14,17 @@ body{
     display:flex;
     flex-direction:column;
     align-items:center;
-    transition:0.3s;
+}
+
+#container{
+    width:95%;
+    max-width:900px;
 }
 
 #robot{
-    margin-top:40px;
-    width:200px;
-    height:200px;
+    margin:20px auto;
+    width:180px;
+    height:180px;
     background:#001a2e;
     border-radius:20px;
     display:flex;
@@ -32,22 +36,15 @@ body{
 }
 
 .eyes{
-    display:flex;
-    gap:30px;
-    font-size:28px;
-    color:#00aaff;
+    font-size:30px;
 }
 
 .mouth{
-    margin-top:25px;
     font-size:26px;
-    color:#00aaff;
 }
 
 #chat{
-    width:90%;
-    max-width:600px;
-    margin-top:30px;
+    width:100%;
 }
 
 #messages{
@@ -61,7 +58,7 @@ body{
 
 input{
     width:100%;
-    padding:10px;
+    padding:12px;
     margin-top:10px;
     background:black;
     border:1px solid #00aaff;
@@ -77,14 +74,6 @@ button{
     cursor:pointer;
 }
 
-/* ESTADOS */
-
-.red{
-    background:#2e0000 !important;
-    box-shadow:0 0 25px red !important;
-    color:red !important;
-}
-
 .greenMode{
     background:#001a00 !important;
     color:#00ff00 !important;
@@ -95,14 +84,16 @@ button{
     box-shadow:0 0 25px #00ff00 !important;
 }
 
-.greenMode input{
-    border:1px solid #00ff00 !important;
-    color:#00ff00 !important;
+@media (orientation: landscape) and (max-height:500px){
+    #messages{
+        height:150px;
+    }
 }
-
 </style>
 </head>
 <body>
+
+<div id="container">
 
 <div id="robot">
     <div class="eyes" id="eyes">◉ ◉</div>
@@ -111,25 +102,22 @@ button{
 
 <div id="chat">
     <div id="messages"></div>
-    <input type="text" id="input" placeholder="Ingrese comando exacto...">
+    <input type="text" id="input" placeholder="Use /comando">
+</div>
+
 </div>
 
 <script>
 
-let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
 let saturnPasswordStage = false;
-let susMode = false;
+let attempts = 3;
+let locked = false;
 
 const body = document.body;
-const robot = document.getElementById("robot");
 const eyes = document.getElementById("eyes");
 const mouth = document.getElementById("mouth");
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
-
-function saveUsed(){
-    localStorage.setItem("chillbillUsed", JSON.stringify(usedCommands));
-}
 
 function addMessage(text, sender){
     let div = document.createElement("div");
@@ -142,29 +130,9 @@ function addMessage(text, sender){
 
 addMessage("Hola, bienvenidos. Soy chill-bill Antivirus.", "chill-bill");
 addMessage("Sistema activo.", "chill-bill");
-addMessage("Comandos disponibles:", "chill-bill");
-addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
-
-function redAlert(){
-    robot.classList.add("red");
-    eyes.textContent = "◉ ◉";
-    mouth.textContent = "_";
-    setTimeout(()=>{
-        robot.classList.remove("red");
-        eyes.textContent = "◉ ◉";
-        mouth.textContent = "‿";
-    },1000);
-}
-
-function sadHint(){
-    mouth.textContent = "︵";
-    setTimeout(()=>{
-        mouth.textContent = "‿";
-    },1000);
-}
+addMessage("Comandos: /hola /personal /entertainment /creadores /creadores_adam /creadores_lily /derechos /saturn", "chill-bill");
 
 function activateSusto(){
-    susMode = true;
     body.classList.add("greenMode");
     eyes.textContent = "X X";
     mouth.textContent = "w";
@@ -172,69 +140,83 @@ function activateSusto(){
 
 function respond(text){
 
-    let lower = text.toLowerCase();
+    if(locked) return null;
 
-    /* DETECTAR SATURN */
-    if(lower.includes("saturn")){
-        redAlert();
-        return "Acceso denegado.";
-    }
+    if(!text.startsWith("/")) return null;
 
-    /* DETECTAR LILI O ADAM */
-    if(lower.includes("lili") || lower.includes("adam")){
-        sadHint();
-    }
+    let cmd = text.trim();
 
-    /* DETECTAR SUSTO */
-    if(lower.includes("susto")){
+    /* SUSTO */
+    if(cmd === "/asusto"){
         activateSusto();
-        return "Modo alterado.";
+        return null;
     }
 
-    if(usedCommands[text]) return null;
+    /* SATURN VARIACIONES */
+    if(cmd.toLowerCase() === "/project saturn"){
+        return "Incorrect name.";
+    }
 
-    switch(text){
+    if(cmd.toLowerCase().startsWith("/saturn")){
+        return "Ruta encontrada:\n/saturn/archive\n/saturn/logs\n/saturn/system";
+    }
 
-        case "Hola":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Saludo detectado. Protección activa.";
+    /* DESBLOQUEO REAL */
+    if(cmd === "/Project Saturn Archive_14.7_update"){
+        saturnPasswordStage = true;
+        attempts = 3;
+        return "Enter password.";
+    }
 
-        case "Personal":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Archivo Personal:\nVacía Entertainment\nTrabajadores: ██████\nContacto: ██████";
+    if(saturnPasswordStage){
+        if(cmd.substring(1) === "AdamXLily"){
+            saturnPasswordStage = false;
 
-        case "Entertainment":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Vacía Entertainment existe.\nEstado legal: Activo.\nNúmero: ██████";
+            let btn = document.createElement("button");
+            btn.textContent = "Acceder Archivo Saturn";
+            btn.onclick = function(){
+                window.location.href = "archivo_saturn.html";
+            };
+            document.getElementById("chat").appendChild(btn);
 
-        case "creadores":
-            usedCommands[text] = true;
-            saveUsed();
-            return "Los creadores de Vacía Studios son:\nA.5U5TO\nL.bill";
+            return "Access granted.";
+        }else{
+            attempts--;
+            if(attempts <= 0){
+                locked = true;
+                return "System locked.";
+            }
+            return "Wrong password. Attempts left: " + attempts;
+        }
+    }
 
-        case "Project Saturn Archive_14.7_update":
-            saturnPasswordStage = true;
-            return "Archivo detectado.\nIngrese contraseña.";
+    /* COMANDOS NORMALES */
+
+    switch(cmd){
+
+        case "/hola":
+            return "Saludo detectado.";
+
+        case "/personal":
+            return "Archivo Personal:\nVasi Entertainment\nTrabajadores: ██████";
+
+        case "/entertainment":
+            return "Vasi Entertainment\nEstado: Activo";
+
+        case "/derechos":
+            return "© Todos los derechos reservados.\nVasi Entertainment.";
+
+        case "/creadores":
+            return "Use /creadores_adam o /creadores_lily";
+
+        case "/creadores_adam":
+            return "Adam █████ es un hombre normal.\nCo-creador de Vasi Studio y █████ Project Saturn.\nProgramador principal junto a █████ (Lily).";
+
+        case "/creadores_lily":
+            return "Lili █████.\nCo-creadora de Vasi Entertainment.\nParticipante en █████ Project Saturn.\nCara principal y creadora del sistema Chill_bil.";
 
         default:
-
-            if(saturnPasswordStage && text === "AdamxLili"){
-                saturnPasswordStage = false;
-
-                let btn = document.createElement("button");
-                btn.textContent = "Acceder al Archivo Saturn";
-                btn.onclick = function(){
-                    window.location.href = "archivo_saturn.html";
-                };
-                document.getElementById("chat").appendChild(btn);
-
-                return "Contraseña correcta.\nArchivo desbloqueado.";
-            }
-
-            return null;
+            return "error";
     }
 }
 
