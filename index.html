@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Robot OS</title>
+<title>Robot Matrix</title>
 
 <style>
 html,body{
     margin:0;
     padding:0;
-    background:#000;
-    height:100%;
+    background:black;
     overflow:hidden;
     touch-action:none;
 }
@@ -19,191 +18,255 @@ html,body{
     width:100vw;
     height:100vh;
     position:relative;
-    transition:transform 0.2s ease;
+    transition:0.3s;
 }
 
 .eye{
     width:22vw;
     height:22vw;
-    background:#111;
-    border:0.6vw solid #00ffff;
+    background:#001a00;
+    border:0.6vw solid #00ff66;
     position:absolute;
-    top:30vh;
+    top:35vh;
     overflow:hidden;
 }
 
-#leftEye{ left:18vw; }
-#rightEye{ right:18vw; }
+#leftEye{ left:20vw; }
+#rightEye{ right:20vw; }
 
 .pupil{
-    width:7vw;
-    height:7vw;
-    background:#00ffff;
+    width:6vw;
+    height:6vw;
+    background:#00ff66;
     position:absolute;
-    top:7vw;
-    left:7vw;
-    transition:transform 0.15s ease;
+    top:8vw;
+    left:8vw;
+    transition:0.15s;
 }
 
 #mouth{
-    width:30vw;
-    height:4vw;
-    border:0.6vw solid #00ffff;
+    width:28vw;
+    height:3vw;
+    border:0.6vw solid #00ff66;
     border-top:none;
     position:absolute;
-    bottom:25vh;
+    top:60vh; /* mucho más cerca */
     left:50%;
     transform:translateX(-50%);
-    transition:all 0.3s ease;
+    transition:0.3s;
 }
 
 .closed{
     height:2vw !important;
 }
 
-.sleep{
-    opacity:0.4;
+.angry{
+    border-color:red !important;
+    background:#200000 !important;
+}
+
+.angryPupil{
+    background:red !important;
+}
+
+.brow{
+    position:absolute;
+    width:24vw;
+    height:1vw;
+    background:red;
+    top:32vh;
+}
+
+#browLeft{
+    left:19vw;
+    transform:rotate(-15deg);
+    display:none;
+}
+
+#browRight{
+    right:19vw;
+    transform:rotate(15deg);
+    display:none;
+}
+
+canvas{
+    position:absolute;
+    top:35vh;
+    left:20vw;
+    width:60vw;
+    height:22vw;
+    display:none;
+    background:black;
+    border:0.5vw solid #00ff66;
 }
 </style>
 </head>
 <body>
 
 <div id="robot">
-    <div class="eye" id="leftEye">
-        <div class="pupil" id="leftPupil"></div>
-    </div>
-    <div class="eye" id="rightEye">
-        <div class="pupil" id="rightPupil"></div>
-    </div>
+    <div class="eye" id="leftEye"><div class="pupil" id="leftPupil"></div></div>
+    <div class="eye" id="rightEye"><div class="pupil" id="rightPupil"></div></div>
     <div id="mouth"></div>
+    <div id="browLeft" class="brow"></div>
+    <div id="browRight" class="brow"></div>
+    <canvas id="pong"></canvas>
 </div>
 
 <script>
-const robot = document.getElementById("robot");
 const leftEye = document.getElementById("leftEye");
 const rightEye = document.getElementById("rightEye");
 const leftPupil = document.getElementById("leftPupil");
 const rightPupil = document.getElementById("rightPupil");
 const mouth = document.getElementById("mouth");
+const canvas = document.getElementById("pong");
+const ctx = canvas.getContext("2d");
+const browLeft = document.getElementById("browLeft");
+const browRight = document.getElementById("browRight");
 
-let inactiveTimer;
-let sleeping=false;
-let interacting=false;
+let angryMode=false;
+let sequence=[];
+let playing=false;
 
-/* ---------- FULLSCREEN ---------- */
-function goFull(){
-    if(document.documentElement.requestFullscreen){
+/* FULLSCREEN */
+document.addEventListener("touchstart",()=>{
+    if(document.documentElement.requestFullscreen)
         document.documentElement.requestFullscreen();
+},{once:true});
+
+/* CIERRE AUTOMÁTICO */
+function blink(eye){
+    eye.classList.add("closed");
+    setTimeout(()=>eye.classList.remove("closed"),1000);
+}
+
+leftEye.addEventListener("touchstart",()=>{
+    if(angryMode||playing)return;
+    blink(leftEye);
+    sequence.push("L");
+    checkSequence();
+});
+
+rightEye.addEventListener("touchstart",()=>{
+    if(angryMode||playing)return;
+    blink(rightEye);
+    sequence.push("R");
+    checkSequence();
+});
+
+function checkSequence(){
+    if(sequence.slice(-3).join("")==="LLL"){
+        startPong();
+        sequence=[];
     }
 }
-document.addEventListener("touchstart",goFull,{once:true});
 
-/* ---------- MOVIMIENTO OJOS ---------- */
-function moveEyes(x,y){
-    leftPupil.style.transform=`translate(${x}px,${y}px)`;
-    rightPupil.style.transform=`translate(${x}px,${y}px)`;
+/* ---------- PONG ---------- */
+let playerY=50, aiY=50, ballX=50, ballY=50, ballVX=2, ballVY=2;
+let playerScore=0, aiScore=0;
+
+function startPong(){
+    playing=true;
+    canvas.style.display="block";
+    canvas.width=600;
+    canvas.height=200;
+    playerScore=0;
+    aiScore=0;
+    requestAnimationFrame(loop);
 }
 
-/* ---------- ANIMACIONES IDLE ---------- */
-function idleLook(){
-    if(interacting || sleeping) return;
-    let x=(Math.random()*80)-40;
-    let y=(Math.random()*80)-40;
-    moveEyes(x,y);
-}
-setInterval(idleLook,2500);
-
-function idleSmile(){
-    if(interacting || sleeping) return;
-    mouth.style.height="8vw";
-    setTimeout(()=>mouth.style.height="4vw",1200);
-}
-setInterval(idleSmile,7000);
-
-/* ---------- INTERACCIÓN DEDO ---------- */
 document.addEventListener("touchmove",e=>{
-    wakeUp();
-    interacting=true;
-    const t=e.touches[0];
-    const rect=robot.getBoundingClientRect();
-    let x=((t.clientX-rect.width/2)/rect.width)*120;
-    let y=((t.clientY-rect.height/2)/rect.height)*120;
-    moveEyes(x,y);
-    mouth.style.height="8vw";
+    if(!playing)return;
+    let rect=canvas.getBoundingClientRect();
+    playerY=(e.touches[0].clientY-rect.top)/rect.height*canvas.height;
 });
 
-document.addEventListener("touchend",()=>{
-    interacting=false;
-    mouth.style.height="4vw";
-});
+function loop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
-/* ---------- CIERRE OJOS ---------- */
-leftEye.addEventListener("touchstart",()=>{
-    wakeUp();
-    leftEye.classList.toggle("closed");
-});
-rightEye.addEventListener("touchstart",()=>{
-    wakeUp();
-    rightEye.classList.toggle("closed");
-});
+    /* AI simple */
+    aiY += (ballY-aiY)*0.05;
 
-/* ---------- SUEÑO ---------- */
-function sleepMode(){
-    sleeping=true;
-    robot.classList.add("sleep");
-    leftEye.classList.add("closed");
-    rightEye.classList.add("closed");
+    ballX+=ballVX;
+    ballY+=ballVY;
+
+    if(ballY<0||ballY>canvas.height)ballVY*=-1;
+
+    if(ballX<20 && ballY>playerY-30 && ballY<playerY+30)ballVX*=-1;
+    if(ballX>canvas.width-20 && ballY>aiY-30 && ballY<aiY+30)ballVX*=-1;
+
+    if(ballX<0){ aiScore++; resetBall(); }
+    if(ballX>canvas.width){ playerScore++; resetBall(); }
+
+    /* DIBUJO */
+    ctx.fillStyle="#00ff66";
+    ctx.fillRect(5,playerY-30,10,60);
+    ctx.fillRect(canvas.width-15,aiY-30,10,60);
+    ctx.fillRect(ballX-5,ballY-5,10,10);
+
+    if(playerScore===3||aiScore===3){
+        endGame();
+        return;
+    }
+
+    requestAnimationFrame(loop);
 }
-function wakeUp(){
-    sleeping=false;
-    robot.classList.remove("sleep");
-    leftEye.classList.remove("closed");
-    rightEye.classList.remove("closed");
-    resetTimer();
-}
-function resetTimer(){
-    clearTimeout(inactiveTimer);
-    inactiveTimer=setTimeout(sleepMode,25000);
-}
-resetTimer();
 
-/* ---------- GIROSCOPIO FUERTE ---------- */
+function resetBall(){
+    ballX=canvas.width/2;
+    ballY=canvas.height/2;
+}
+
+function endGame(){
+    canvas.style.display="none";
+    playing=false;
+
+    if(playerScore===3){
+        activateAngry();
+    }else{
+        mouth.style.height="6vw";
+        setTimeout(()=>mouth.style.height="3vw",1500);
+    }
+}
+
+/* ---------- MODO ENOJO ---------- */
+function activateAngry(){
+    angryMode=true;
+
+    leftEye.classList.add("angry");
+    rightEye.classList.add("angry");
+    leftPupil.classList.add("angryPupil");
+    rightPupil.classList.add("angryPupil");
+    mouth.style.borderColor="red";
+    browLeft.style.display="block";
+    browRight.style.display="block";
+
+    leftPupil.style.transform="translate(0,0)";
+    rightPupil.style.transform="translate(0,0)";
+}
+
+/* ---------- GIROSCOPIO ---------- */
 if(window.DeviceOrientationEvent){
     window.addEventListener("deviceorientation",e=>{
-        if(sleeping) return;
-        let tiltX=e.gamma;
-        let tiltY=e.beta;
-        robot.style.transform=`rotate(${tiltX/3}deg) translateY(${tiltY/5}px)`;
+        if(angryMode||playing)return;
+        document.getElementById("robot").style.transform=
+        `rotate(${e.gamma/4}deg)`;
     });
 }
 
-/* ---------- REACCIÓN A AGITAR ---------- */
-if(window.DeviceMotionEvent){
-    window.addEventListener("devicemotion",e=>{
-        if(sleeping) return;
-        let a=e.accelerationIncludingGravity;
-        let total=Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z);
-        if(total>45){
-            mouth.style.height="2vw";
-            setTimeout(()=>mouth.style.height="4vw",400);
-        }
-    });
-}
-
-/* ---------- REACCIÓN A SONIDO ---------- */
+/* ---------- SONIDO ---------- */
 navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    const ctx=new AudioContext();
-    const mic=ctx.createMediaStreamSource(stream);
-    const analyser=ctx.createAnalyser();
+    const ctxA=new AudioContext();
+    const mic=ctxA.createMediaStreamSource(stream);
+    const analyser=ctxA.createAnalyser();
     mic.connect(analyser);
     const data=new Uint8Array(analyser.frequencyBinCount);
 
     function detect(){
         analyser.getByteFrequencyData(data);
         let volume=data.reduce((a,b)=>a+b)/data.length;
-        if(volume>60 && !sleeping){
-            mouth.style.height="10vw";
-            moveEyes((Math.random()*100)-50,(Math.random()*100)-50);
+        if(volume>70 && !angryMode && !playing){
+            mouth.style.height="8vw";
+            setTimeout(()=>mouth.style.height="3vw",300);
         }
         requestAnimationFrame(detect);
     }
