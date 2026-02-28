@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Face</title>
+<style>
+body{
+    margin:0;
+    background:#000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    overflow:hidden;
+    touch-action:none;
+}
+
+#robot{
+    width:300px;
+    height:300px;
+    position:relative;
+    transition:transform 0.3s ease;
+}
+
+.eye{
+    width:90px;
+    height:90px;
+    background:#111;
+    border:4px solid #00ffff;
+    position:absolute;
+    overflow:hidden;
+}
+
+#leftEye{ left:30px; top:80px; }
+#rightEye{ right:30px; top:80px; }
+
+.pupil{
+    width:30px;
+    height:30px;
+    background:#00ffff;
+    position:absolute;
+    top:30px;
+    left:30px;
+    transition:all 0.2s ease;
+}
+
+#mouth{
+    width:140px;
+    height:20px;
+    border:4px solid #00ffff;
+    border-top:none;
+    position:absolute;
+    bottom:60px;
+    left:50%;
+    transform:translateX(-50%);
+    transition:all 0.3s ease;
+}
+.sleep{
+    opacity:0.5;
+}
+.closed{
+    height:10px !important;
+}
+</style>
+</head>
+<body>
+
+<div id="robot">
+    <div class="eye" id="leftEye">
+        <div class="pupil" id="leftPupil"></div>
+    </div>
+    <div class="eye" id="rightEye">
+        <div class="pupil" id="rightPupil"></div>
+    </div>
+    <div id="mouth"></div>
+</div>
+
+<script>
+const leftPupil = document.getElementById("leftPupil");
+const rightPupil = document.getElementById("rightPupil");
+const leftEye = document.getElementById("leftEye");
+const rightEye = document.getElementById("rightEye");
+const mouth = document.getElementById("mouth");
+const robot = document.getElementById("robot");
+
+let inactiveTimer;
+let sleeping = false;
+
+function randomLook(){
+    if(sleeping) return;
+    let x = (Math.random()*40)-20;
+    let y = (Math.random()*40)-20;
+    moveEyes(x,y);
+}
+setInterval(randomLook,3000);
+
+function moveEyes(x,y){
+    leftPupil.style.transform = `translate(${x}px,${y}px)`;
+    rightPupil.style.transform = `translate(${x}px,${y}px)`;
+}
+
+function smile(){
+    if(sleeping) return;
+    mouth.style.height="40px";
+    setTimeout(()=> mouth.style.height="20px",1000);
+}
+setInterval(smile,8000);
+
+document.addEventListener("touchmove", e=>{
+    wakeUp();
+    const touch = e.touches[0];
+    const rect = robot.getBoundingClientRect();
+    let x = ((touch.clientX - rect.left)/rect.width -0.5)*40;
+    let y = ((touch.clientY - rect.top)/rect.height -0.5)*40;
+    moveEyes(x,y);
+    mouth.style.height="40px";
+});
+
+document.addEventListener("touchend", ()=>{
+    mouth.style.height="20px";
+});
+
+leftEye.addEventListener("touchstart", ()=>{
+    wakeUp();
+    leftEye.classList.toggle("closed");
+});
+rightEye.addEventListener("touchstart", ()=>{
+    wakeUp();
+    rightEye.classList.toggle("closed");
+});
+
+function sleepMode(){
+    sleeping = true;
+    robot.classList.add("sleep");
+    leftEye.classList.add("closed");
+    rightEye.classList.add("closed");
+}
+function wakeUp(){
+    sleeping=false;
+    robot.classList.remove("sleep");
+    leftEye.classList.remove("closed");
+    rightEye.classList.remove("closed");
+    resetInactivity();
+}
+function resetInactivity(){
+    clearTimeout(inactiveTimer);
+    inactiveTimer=setTimeout(sleepMode,20000);
+}
+resetInactivity();
+
+if (window.DeviceOrientationEvent) {
+    window.addEventListener("deviceorientation", e=>{
+        if(sleeping) return;
+        let tilt = e.gamma;
+        robot.style.transform = `rotate(${tilt/5}deg)`;
+    });
+}
+
+if (window.DeviceMotionEvent) {
+    window.addEventListener("devicemotion", e=>{
+        if(sleeping) return;
+        let acc = e.accelerationIncludingGravity;
+        let total = Math.abs(acc.x)+Math.abs(acc.y)+Math.abs(acc.z);
+        if(total>40){
+            mouth.style.height="5px";
+            setTimeout(()=> mouth.style.height="20px",500);
+        }
+    });
+}
+</script>
+
+</body>
+</html>
