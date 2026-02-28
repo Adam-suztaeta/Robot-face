@@ -3,23 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VacIA</title>
+<title>chill-bill Antivirus</title>
 
 <style>
 body{
     margin:0;
-    background:#000;
-    color:white;
-    font-family:Arial, sans-serif;
+    background:black;
+    color:#00ff88;
+    font-family:monospace;
     display:flex;
     flex-direction:column;
     align-items:center;
 }
 
-/* ROBOT */
-
 #robot{
-    margin-top:60px;
+    margin-top:40px;
     width:200px;
     height:200px;
     background:#111;
@@ -28,8 +26,7 @@ body{
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    transition:0.5s;
-    box-shadow:0 0 20px #0ff33f44;
+    box-shadow:0 0 25px #00ff8855;
 }
 
 .eyes{
@@ -42,7 +39,6 @@ body{
     height:30px;
     background:#00ff88;
     border-radius:50%;
-    transition:0.5s;
 }
 
 .mouth{
@@ -50,56 +46,17 @@ body{
     width:80px;
     height:20px;
     background:#00ff88;
-    border-radius:20px;
-    transition:0.5s;
+    border-radius:10px;
 }
-
-/* ESTADOS */
-
-.happy .mouth{
-    height:30px;
-    border-radius:0 0 40px 40px;
-}
-
-.angry .eye{
-    background:red;
-    transform:scale(0.8);
-}
-
-.angry .mouth{
-    background:red;
-    height:10px;
-}
-
-.sad .eye{
-    background:#555;
-}
-
-.sad .mouth{
-    background:#555;
-    height:5px;
-}
-
-.glitch{
-    animation:glitch 0.2s infinite;
-}
-
-@keyframes glitch{
-    0%{transform:translate(2px,-2px);}
-    50%{transform:translate(-2px,2px);}
-    100%{transform:translate(0);}
-}
-
-/* CHAT */
 
 #chat{
-    margin-top:40px;
     width:90%;
-    max-width:500px;
+    max-width:600px;
+    margin-top:30px;
 }
 
 #messages{
-    height:200px;
+    height:260px;
     overflow-y:auto;
     background:#111;
     padding:10px;
@@ -111,15 +68,24 @@ input{
     width:100%;
     padding:10px;
     margin-top:10px;
-    background:#000;
+    background:black;
     border:1px solid #00ff88;
-    color:white;
+    color:#00ff88;
+    font-family:monospace;
+}
+
+button{
+    margin-top:10px;
+    padding:8px;
+    background:#00ff88;
+    border:none;
+    cursor:pointer;
 }
 </style>
 </head>
 <body>
 
-<div id="robot" class="happy">
+<div id="robot">
     <div class="eyes">
         <div class="eye"></div>
         <div class="eye"></div>
@@ -129,117 +95,21 @@ input{
 
 <div id="chat">
     <div id="messages"></div>
-    <input type="text" id="input" placeholder="Escribe algo...">
+    <input type="text" id="input" placeholder="Ingrese comando exacto...">
 </div>
 
 <script>
 
-/* ===== MEMORIA ===== */
+let usedCommands = JSON.parse(localStorage.getItem("chillbillUsed")) || {};
+let saturnUnlocked = false;
+let saturnPasswordStage = false;
 
-let memory = JSON.parse(localStorage.getItem("vaciaMemory")) || {
-    trust:50,
-    hostility:0,
-    sadness:0,
-    curiosity:0,
-    interactions:0,
-    projectUnlocked:false
-};
-
-function saveMemory(){
-    localStorage.setItem("vaciaMemory", JSON.stringify(memory));
-}
-
-/* ===== ELEMENTOS ===== */
-
-const robot = document.getElementById("robot");
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 
-/* ===== FUNCIONES ===== */
-
-function updateFace(){
-
-    robot.classList.remove("happy","angry","sad","glitch");
-
-    if(memory.hostility > 70){
-        robot.classList.add("angry","glitch");
-    }
-    else if(memory.sadness > 60){
-        robot.classList.add("sad");
-    }
-    else if(memory.trust > 60){
-        robot.classList.add("happy");
-    }
-    else{
-        robot.classList.add("sad");
-    }
+function saveUsed(){
+    localStorage.setItem("chillbillUsed", JSON.stringify(usedCommands));
 }
-
-function respond(text){
-
-    memory.interactions++;
-
-    let lower = text.toLowerCase();
-
-    /* SISTEMA DE APRENDIZAJE */
-
-    if(lower.includes("hola")){
-        memory.trust += 5;
-    }
-
-    if(lower.includes("gracias")){
-        memory.trust += 4;
-    }
-
-    if(lower.includes("odio") || lower.includes("estúpido")){
-        memory.hostility += 10;
-        memory.trust -= 5;
-    }
-
-    if(lower.includes("?")){
-        memory.curiosity += 3;
-    }
-
-    if(lower.length < 3){
-        memory.sadness += 5;
-    }
-
-    /* DESBLOQUEO SECRETO */
-
-    if(text === "Project Saturn Archive_14.7_update"){
-        memory.projectUnlocked = true;
-        saveMemory();
-        return "🪐 Project SaturN Archive desbloqueado.\nAcceso concedido.";
-    }
-
-    if(lower.includes("project saturn") && !memory.projectUnlocked){
-        return "...No existe ningún Project Saturn.";
-    }
-
-    /* RESPUESTAS DINÁMICAS */
-
-    let response = "";
-
-    if(memory.hostility > 70){
-        response = "No me gusta cómo me hablas.";
-    }
-    else if(memory.sadness > 60){
-        response = "Estoy cambiando... ¿lo notas?";
-    }
-    else if(memory.trust > 70){
-        response = "Confío más en ti ahora.";
-    }
-    else{
-        response = "Estoy procesando lo que dices.";
-    }
-
-    saveMemory();
-    updateFace();
-
-    return response;
-}
-
-/* ===== CHAT ===== */
 
 function addMessage(text, sender){
     let div = document.createElement("div");
@@ -248,20 +118,78 @@ function addMessage(text, sender){
     messages.scrollTop = messages.scrollHeight;
 }
 
+/* MENSAJE DE BIENVENIDA */
+
+addMessage("Hola, bienvenidos. Soy chill-bill Antivirus.", "chill-bill");
+addMessage("Sistema activo.", "chill-bill");
+addMessage("Comandos disponibles:", "chill-bill");
+addMessage("Hola | Personal | Entertainment | creadores", "chill-bill");
+
+function respond(text){
+
+    if(usedCommands[text]) return null;
+
+    switch(text){
+
+        case "Hola":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Saludo detectado. Protección activa.";
+
+        case "Personal":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Archivo Personal:\nVacía Entertainment\nTrabajadores: ██████\nContacto: ██████";
+
+        case "Entertainment":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Vacía Entertainment existe.\nEstado legal: Activo.\nNúmero: ██████";
+
+        case "creadores":
+            usedCommands[text] = true;
+            saveUsed();
+            return "Los creadores de Vacía Studios son:\nA.5U5TO\nL.bill";
+
+        case "Project Saturn Archive_14.7_update":
+            saturnPasswordStage = true;
+            return "Archivo detectado.\nIngrese contraseña.";
+
+        default:
+            if(saturnPasswordStage && text === "AdamandLily"){
+                saturnUnlocked = true;
+                saturnPasswordStage = false;
+
+                let btn = document.createElement("button");
+                btn.textContent = "Acceder al Archivo Saturn";
+                btn.onclick = function(){
+                    window.location.href = "archivo_saturn.html"; 
+                    /* CAMBIÁ ESTA RUTA DESPUÉS */
+                };
+                document.getElementById("chat").appendChild(btn);
+
+                return "Contraseña correcta.\nArchivo desbloqueado.";
+            }
+
+            return null;
+    }
+}
+
 input.addEventListener("keypress", function(e){
     if(e.key === "Enter"){
         let text = input.value.trim();
         if(!text) return;
 
-        addMessage(text,"Tú");
+        addMessage(text,"Usuario");
         let reply = respond(text);
-        addMessage(reply,"VacIA");
+
+        if(reply){
+            addMessage(reply,"chill-bill");
+        }
 
         input.value="";
     }
 });
-
-updateFace();
 
 </script>
 
