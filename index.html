@@ -152,7 +152,8 @@ body{
 <script>
 
 let saturnPasswordStage = false;
-let vaciaPasswordStage = false; // 👈 agregado
+let vaciaPasswordStage = false;
+let malwarePasswordStage = false; /* 👈 agregado */
 let typing = false;
 
 const messages = document.getElementById("messages");
@@ -244,8 +245,6 @@ async function respond(text){
     if(lower.includes("violet") || lower.includes("baiolet")){ violetGlitch(); return; }
     if(lower==="chau" || lower==="adios" || lower==="adiós"){ history.back(); return; }
 
-    /* NUEVO ARCHIVO VACIA STATUS */
-
     if(lower==="project_vacia_status"){
         vaciaPasswordStage=true;
         await typeText("Archivo detectado.");
@@ -281,6 +280,30 @@ async function respond(text){
         await typeText("Contraseña correcta.");
         await typeText("Archivo desbloqueado.");
         saturnAccess.style.display="block";
+        return;
+    }
+
+    /* ========================= */
+    /* NUEVO COMANDO SECRETO     */
+    /* ========================= */
+
+    if(lower==="malware"){
+        await typeText("Hay aproximadamente ▒▒▒ malwares activos.");
+        await typeText("Hay 1 ▒▒▒");
+        return;
+    }
+
+    if(lower==="malware.lord_saturn"){
+        malwarePasswordStage = true;
+        await typeText("Malware detectado.");
+        await typeText("Ingrese contraseña.");
+        return;
+    }
+
+    if(malwarePasswordStage && lower==="susto333"){
+        malwarePasswordStage = false;
+        await typeText("Contraseña correcta.");
+        await typeText("Malware peligroso en expansion conciente de su existencia en VacIA y con control de administrador heredado. Extremadamente peligroso.");
         return;
     }
 
